@@ -2,6 +2,7 @@
 package me.andresdiaz.eco_guia.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +23,9 @@ private val GuideText = Color(0xFF202438)
 private val GuideLavender = Color(0xFFE9EAFB)
 
 @Composable
-fun GuideScreen() {
+fun GuideScreen(
+    onCategoryClick: (String) -> Unit = {}
+) {
 
     var searchText by remember { mutableStateOf("") }
 
@@ -54,7 +57,6 @@ fun GuideScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ENCABEZADO
             Text(
                 text = "Guía de reciclaje",
                 fontSize = 25.sp,
@@ -73,7 +75,6 @@ fun GuideScreen() {
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            // BUSCADOR
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
@@ -110,13 +111,15 @@ fun GuideScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // CATEGORÍAS
             filteredCategories.forEach { category ->
 
                 CategoryCard(
                     title = category.first,
                     description = category.second,
-                    container = category.third
+                    container = category.third,
+                    onClick = {
+                        onCategoryClick(category.first)
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -135,7 +138,6 @@ fun GuideScreen() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // RECOMENDACIONES
             Text(
                 text = "Recomendaciones generales",
                 fontSize = 19.sp,
@@ -159,7 +161,6 @@ fun GuideScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
         }
-
     }
 }
 
@@ -167,11 +168,14 @@ fun GuideScreen() {
 private fun CategoryCard(
     title: String,
     description: String,
-    container: String
+    container: String,
+    onClick: () -> Unit
 ) {
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White

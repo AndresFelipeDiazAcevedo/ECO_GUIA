@@ -27,7 +27,9 @@ import me.andresdiaz.eco_guia.ui.screens.HistoryScreen
 import me.andresdiaz.eco_guia.ui.screens.ProfileScreen
 import me.andresdiaz.eco_guia.ui.screens.LoginScreen
 import me.andresdiaz.eco_guia.ui.screens.RegisterScreen
+import me.andresdiaz.eco_guia.ui.screens.DetailScreen
 import me.andresdiaz.eco_guia.ui.theme.ECO_GUIATheme
+import android.net.Uri
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppNavigation() {
+
     val navController = rememberNavController()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -212,7 +215,25 @@ fun AppNavigation() {
 
             // GUÍA
             composable("guide") {
-                GuideScreen()
+                GuideScreen(
+                    onCategoryClick = { category ->
+                        navController.navigate("detail/${Uri.encode(category)}")
+                    }
+                )
+            }
+
+            // DETALLE DE CATEGORÍA
+            composable("detail/{category}") { backStackEntry ->
+
+                val category = backStackEntry.arguments
+                    ?.getString("category") ?: "Aprovechables"
+
+                DetailScreen(
+                    category = category,
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
             // HISTORIAL
@@ -226,7 +247,16 @@ fun AppNavigation() {
 
             // PERFIL
             composable("profile") {
-                ProfileScreen()
+                ProfileScreen(
+                    onLogoutClick = {
+                        navController.navigate("login") {
+                            popUpTo("login") {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
     }

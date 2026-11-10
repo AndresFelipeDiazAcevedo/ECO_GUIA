@@ -23,7 +23,9 @@ private val ProfileLavender = Color(0xFFE9EAFB)
 private val ProfileText = Color(0xFF202438)
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onLogoutClick: () -> Unit = {}
+){
 
     var darkMode by remember { mutableStateOf(false) }
 
@@ -348,7 +350,7 @@ fun ProfileScreen() {
                     )
 
                     TextButton(
-                        onClick = { },
+                        onClick = onLogoutClick,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
