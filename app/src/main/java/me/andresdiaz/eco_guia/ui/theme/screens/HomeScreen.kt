@@ -1,6 +1,8 @@
+
 package me.andresdiaz.eco_guia.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +25,10 @@ private val EcoLavender = Color(0xFFE9EAFB)
 private val EcoText = Color(0xFF202438)
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onIdentifyClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {}
+) {
 
     Column(
         modifier = Modifier
@@ -46,6 +51,7 @@ fun HomeScreen() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Column {
                     Text(
                         text = "¡Hola, Andrés!",
@@ -61,10 +67,15 @@ fun HomeScreen() {
                     )
                 }
 
+                // FOTO DE PERFIL
                 Surface(
                     shape = RoundedCornerShape(50),
                     color = EcoLavender,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable {
+                            onProfileClick()
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text("👤", fontSize = 25.sp)
@@ -82,6 +93,7 @@ fun HomeScreen() {
                     containerColor = EcoGreen
                 )
             ) {
+
                 Column(
                     modifier = Modifier.padding(22.dp)
                 ) {
@@ -124,7 +136,7 @@ fun HomeScreen() {
                     Spacer(modifier = Modifier.height(22.dp))
 
                     Button(
-                        onClick = { },
+                        onClick = onIdentifyClick,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(54.dp),
@@ -159,6 +171,7 @@ fun HomeScreen() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 StatCard(
                     modifier = Modifier.weight(1f),
                     value = "19",
@@ -202,9 +215,6 @@ fun HomeScreen() {
 
             Spacer(modifier = Modifier.height(24.dp))
         }
-
-        // NAVEGACIÓN VISUAL (TODAVÍA SIN FUNCIONALIDAD)
-        BottomNavigationPreview()
     }
 }
 
@@ -286,30 +296,6 @@ private fun TipCard(
                 fontWeight = FontWeight.Bold,
                 color = EcoGreen
             )
-        }
-    }
-}
-
-@Composable
-fun BottomNavigationPreview() {
-
-    Surface(
-        color = Color.White,
-        shadowElevation = 8.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            NavigationItem("⌂", "Inicio", true)
-            NavigationItem("▣", "Identificar", false)
-            NavigationItem("▤", "Guía", false)
-            NavigationItem("♙", "Perfil", false)
         }
     }
 }

@@ -30,7 +30,7 @@ data class HistoryRecord(
 )
 
 @Composable
-fun HistoryScreen() {
+fun HistoryScreen(onBackClick: () -> Unit = {}) {
 
     var selectedFilter by remember { mutableStateOf("Todos") }
 
@@ -100,12 +100,27 @@ fun HistoryScreen() {
             Spacer(modifier = Modifier.height(20.dp))
 
             // ENCABEZADO
-            Text(
-                text = "Mi historial",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = HistoryText
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = onBackClick
+                ) {
+                    Text(
+                        text = "Volver",
+                        color = HistoryGreen,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Text(
+                    text = "Mi historial",
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = HistoryText
+                )
+            }
 
             Spacer(modifier = Modifier.height(7.dp))
 
@@ -240,8 +255,6 @@ fun HistoryScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
         }
-
-        BottomNavigationPreview()
     }
 }
 

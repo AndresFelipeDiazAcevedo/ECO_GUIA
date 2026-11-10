@@ -22,7 +22,10 @@ private val ResultBackground = Color(0xFFF7F6FC)
 private val ResultText = Color(0xFF202438)
 
 @Composable
-fun ResultScreen() {
+fun ResultScreen(
+    onSaveClick: () -> Unit = {},
+    onRescanClick: () -> Unit = {}
+) {
 
     Column(
         modifier = Modifier
@@ -287,7 +290,7 @@ fun ResultScreen() {
         ) {
 
             Button(
-                onClick = { },
+                onClick = onSaveClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(53.dp),
@@ -306,7 +309,7 @@ fun ResultScreen() {
             Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedButton(
-                onClick = { },
+                onClick = onRescanClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),

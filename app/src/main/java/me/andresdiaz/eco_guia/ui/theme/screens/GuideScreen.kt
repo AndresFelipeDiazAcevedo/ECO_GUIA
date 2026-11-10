@@ -160,7 +160,6 @@ fun GuideScreen() {
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        BottomNavigationPreview()
     }
 }
 

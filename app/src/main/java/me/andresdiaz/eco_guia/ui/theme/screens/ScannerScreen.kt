@@ -20,7 +20,9 @@ private val ScannerBackground = Color(0xFFF7F6FC)
 private val ScannerText = Color(0xFF202438)
 
 @Composable
-fun ScannerScreen() {
+fun ScannerScreen(
+    onResultClick: () -> Unit = {}
+) {
 
     Column(
         modifier = Modifier
@@ -101,7 +103,7 @@ fun ScannerScreen() {
 
         // BOTÓN PRINCIPAL
         Button(
-            onClick = { },
+            onClick = onResultClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),
@@ -121,7 +123,7 @@ fun ScannerScreen() {
 
         // OPCIONES SECUNDARIAS
         OutlinedButton(
-            onClick = { },
+            onClick = onResultClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
