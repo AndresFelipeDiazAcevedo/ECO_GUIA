@@ -1,6 +1,8 @@
 
 package me.andresdiaz.eco_guia
 
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,9 +31,9 @@ import me.andresdiaz.eco_guia.ui.screens.LoginScreen
 import me.andresdiaz.eco_guia.ui.screens.RegisterScreen
 import me.andresdiaz.eco_guia.ui.screens.DetailScreen
 import me.andresdiaz.eco_guia.ui.theme.ECO_GUIATheme
-import android.net.Uri
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -61,8 +63,10 @@ fun AppNavigation() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+
         bottomBar = {
             if (currentDestination?.route in bottomBarRoutes) {
+
                 NavigationBar {
 
                     NavigationBarItem(
@@ -131,6 +135,7 @@ fun AppNavigation() {
                 }
             }
         }
+
     ) { innerPadding ->
 
         NavHost(
@@ -190,7 +195,12 @@ fun AppNavigation() {
             // ESCÁNER
             composable("scanner") {
                 ScannerScreen(
-                    onResultClick = {
+                    onResultClick = { bitmap ->
+
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("selectedImage", bitmap)
+
                         navController.navigate("result")
                     }
                 )
@@ -217,7 +227,9 @@ fun AppNavigation() {
             composable("guide") {
                 GuideScreen(
                     onCategoryClick = { category ->
-                        navController.navigate("detail/${Uri.encode(category)}")
+                        navController.navigate(
+                            "detail/${Uri.encode(category)}"
+                        )
                     }
                 )
             }
@@ -225,8 +237,10 @@ fun AppNavigation() {
             // DETALLE DE CATEGORÍA
             composable("detail/{category}") { backStackEntry ->
 
-                val category = backStackEntry.arguments
-                    ?.getString("category") ?: "Aprovechables"
+                val category = Uri.decode(
+                    backStackEntry.arguments?.getString("category")
+                        ?: "Aprovechables"
+                )
 
                 DetailScreen(
                     category = category,

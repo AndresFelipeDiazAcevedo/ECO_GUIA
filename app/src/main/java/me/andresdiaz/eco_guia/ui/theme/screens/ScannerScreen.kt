@@ -1,19 +1,27 @@
 
 package me.andresdiaz.eco_guia.ui.screens
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.platform.LocalContext
 
 private val ScannerGreen = Color(0xFF075B3D)
 private val ScannerBackground = Color(0xFFF7F6FC)
@@ -21,8 +29,44 @@ private val ScannerText = Color(0xFF202438)
 
 @Composable
 fun ScannerScreen(
-    onResultClick: () -> Unit = {}
+    onResultClick: (Bitmap) -> Unit = {}
 ) {
+
+    val context = LocalContext.current
+
+    var selectedImage by remember {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    // ABRIR CÁMARA
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            selectedImage = bitmap
+        }
+    }
+
+    // ABRIR GALERÍA
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+
+        if (uri != null) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bitmap = inputStream?.use {
+                    BitmapFactory.decodeStream(it)
+                }
+
+                if (bitmap != null) {
+                    selectedImage = bitmap
+                }
+            } catch (e: Exception) {
+                selectedImage = null
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -52,7 +96,7 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // ÁREA DE CÁMARA
+        // ÁREA DE IMAGEN
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -69,24 +113,38 @@ fun ScannerScreen(
             contentAlignment = Alignment.Center
         ) {
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            if (selectedImage != null) {
 
-                Text(
-                    text = "Vista de cámara",
-                    fontSize = 19.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = ScannerText
+                Image(
+                    bitmap = selectedImage!!.asImageBitmap(),
+                    contentDescription = "Imagen del residuo seleccionado",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(5.dp),
+                    contentScale = ContentScale.Fit
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+            } else {
 
-                Text(
-                    text = "La imagen del residuo aparecerá aquí",
-                    fontSize = 13.sp,
-                    color = Color.DarkGray
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = "Vista de cámara",
+                        fontSize = 19.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = ScannerText
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "La imagen del residuo aparecerá aquí",
+                        fontSize = 13.sp,
+                        color = Color.DarkGray
+                    )
+                }
             }
         }
 
@@ -94,16 +152,22 @@ fun ScannerScreen(
 
         // INDICACIÓN
         Text(
-            text = "Centra el residuo dentro del área de captura.",
+            text = if (selectedImage == null) {
+                "Centra el residuo dentro del área de captura."
+            } else {
+                "Imagen seleccionada correctamente."
+            },
             fontSize = 13.sp,
             color = Color.Gray
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // BOTÓN PRINCIPAL
+        // BOTÓN DE CÁMARA
         Button(
-            onClick = onResultClick,
+            onClick = {
+                cameraLauncher.launch(null)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),
@@ -121,9 +185,11 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // OPCIONES SECUNDARIAS
+        // BOTÓN DE GALERÍA
         OutlinedButton(
-            onClick = onResultClick,
+            onClick = {
+                galleryLauncher.launch("image/*")
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -142,12 +208,39 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = "La identificación será realizada mediante inteligencia artificial.",
-            fontSize = 12.sp,
-            color = Color.Gray,
-            lineHeight = 18.sp
-        )
+        // CONTINUAR
+        if (selectedImage != null) {
+
+            Button(
+                onClick = {
+                    selectedImage?.let { image ->
+                        onResultClick(image)
+                    }
+                },                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(55.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF62F58C)
+                ),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text(
+                    text = "Continuar con la identificación",
+                    color = ScannerGreen,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+        } else {
+
+            Text(
+                text = "La identificación será realizada mediante inteligencia artificial.",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                lineHeight = 18.sp
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
     }
