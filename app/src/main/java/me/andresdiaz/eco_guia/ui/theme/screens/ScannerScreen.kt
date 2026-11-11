@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -17,11 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import me.andresdiaz.eco_guia.WasteClassifier
 
 private val ScannerGreen = Color(0xFF075B3D)
 private val ScannerBackground = Color(0xFFF7F6FC)
@@ -29,13 +34,22 @@ private val ScannerText = Color(0xFF202438)
 
 @Composable
 fun ScannerScreen(
-    onResultClick: (Bitmap) -> Unit = {}
+    onResultClick: (Bitmap, String, Float) -> Unit = { _, _, _ -> }
 ) {
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var selectedImage by remember {
         mutableStateOf<Bitmap?>(null)
+    }
+
+    var isAnalyzing by remember {
+        mutableStateOf(false)
+    }
+
+    var errorMessage by remember {
+        mutableStateOf<String?>(null)
     }
 
     // ABRIR CÁMARA
@@ -44,6 +58,7 @@ fun ScannerScreen(
     ) { bitmap ->
         if (bitmap != null) {
             selectedImage = bitmap
+            errorMessage = null
         }
     }
 
@@ -51,19 +66,23 @@ fun ScannerScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-
         if (uri != null) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
+
                 val bitmap = inputStream?.use {
                     BitmapFactory.decodeStream(it)
                 }
 
                 if (bitmap != null) {
                     selectedImage = bitmap
+                    errorMessage = null
+                } else {
+                    errorMessage = "No se pudo abrir la imagen."
                 }
+
             } catch (e: Exception) {
-                selectedImage = null
+                errorMessage = "Error al cargar la fotografía."
             }
         }
     }
@@ -168,6 +187,7 @@ fun ScannerScreen(
             onClick = {
                 cameraLauncher.launch(null)
             },
+            enabled = !isAnalyzing,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(55.dp),
@@ -190,14 +210,12 @@ fun ScannerScreen(
             onClick = {
                 galleryLauncher.launch("image/*")
             },
+            enabled = !isAnalyzing,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(14.dp),
-            border = androidx.compose.foundation.BorderStroke(
-                1.dp,
-                ScannerGreen
-            )
+            border = BorderStroke(1.dp, ScannerGreen)
         ) {
             Text(
                 text = "Seleccionar desde galería",
@@ -208,15 +226,49 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // CONTINUAR
+        // CONTINUAR Y ANALIZAR CON IA
         if (selectedImage != null) {
 
             Button(
                 onClick = {
-                    selectedImage?.let { image ->
-                        onResultClick(image)
+                    val image = selectedImage
+
+                    if (image != null && !isAnalyzing) {
+
+                        scope.launch {
+                            isAnalyzing = true
+                            errorMessage = null
+
+                            try {
+                                val result = withContext(Dispatchers.Default) {
+                                    val classifier = WasteClassifier(
+                                        context.applicationContext
+                                    )
+
+                                    try {
+                                        classifier.classify(image)
+                                    } finally {
+                                        classifier.close()
+                                    }
+                                }
+
+                                onResultClick(
+                                    image,
+                                    result.first,
+                                    result.second
+                                )
+
+                            } catch (e: Exception) {
+                                errorMessage =
+                                    "No se pudo analizar la imagen: ${e.message}"
+                            } finally {
+                                isAnalyzing = false
+                            }
+                        }
                     }
-                },                modifier = Modifier
+                },
+                enabled = !isAnalyzing,
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -224,8 +276,23 @@ fun ScannerScreen(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
+
+                if (isAnalyzing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(22.dp),
+                        color = ScannerGreen,
+                        strokeWidth = 2.dp
+                    )
+
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+
                 Text(
-                    text = "Continuar con la identificación",
+                    text = if (isAnalyzing) {
+                        "Analizando imagen..."
+                    } else {
+                        "Continuar con la identificación"
+                    },
                     color = ScannerGreen,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
@@ -239,6 +306,17 @@ fun ScannerScreen(
                 fontSize = 12.sp,
                 color = Color.Gray,
                 lineHeight = 18.sp
+            )
+        }
+
+        if (errorMessage != null) {
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = errorMessage ?: "",
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp
             )
         }
 

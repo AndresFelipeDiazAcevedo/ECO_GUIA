@@ -195,11 +195,19 @@ fun AppNavigation() {
             // ESCÁNER
             composable("scanner") {
                 ScannerScreen(
-                    onResultClick = { bitmap ->
+                    onResultClick = { bitmap, category, confidence ->
 
                         navController.currentBackStackEntry
                             ?.savedStateHandle
                             ?.set("selectedImage", bitmap)
+
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("detectedCategory", category)
+
+                        navController.currentBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("confidence", confidence)
 
                         navController.navigate("result")
                     }
@@ -208,10 +216,28 @@ fun AppNavigation() {
 
             // RESULTADO
             composable("result") {
+
+                val savedStateHandle = navController.previousBackStackEntry
+                    ?.savedStateHandle
+
+                val selectedImage = savedStateHandle
+                    ?.get<Bitmap>("selectedImage")
+
+                val detectedCategory = savedStateHandle
+                    ?.get<String>("detectedCategory") ?: "Sin identificar"
+
+                val confidence = savedStateHandle
+                    ?.get<Float>("confidence") ?: 0f
+
                 ResultScreen(
+                    image = selectedImage,
+                    category = detectedCategory,
+                    confidence = confidence,
+
                     onSaveClick = {
                         navController.navigate("history")
                     },
+
                     onRescanClick = {
                         navController.navigate("scanner") {
                             popUpTo("scanner") {

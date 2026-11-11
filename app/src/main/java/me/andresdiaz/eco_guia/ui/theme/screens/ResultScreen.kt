@@ -1,6 +1,8 @@
 
 package me.andresdiaz.eco_guia.ui.screens
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,9 +27,93 @@ private val ResultText = Color(0xFF202438)
 
 @Composable
 fun ResultScreen(
+    image: Bitmap? = null,
+    category: String = "Sin identificar",
+    confidence: Float = 0f,
     onSaveClick: () -> Unit = {},
     onRescanClick: () -> Unit = {}
 ) {
+
+    val isRecyclable = category != "Basura" &&
+            category != "Sin identificar"
+
+    val recommendation = when (category) {
+        "Plástico" ->
+            "Separa los envases plásticos, vacíalos y procura entregarlos limpios y secos para facilitar su aprovechamiento."
+
+        "Cartón" ->
+            "Mantén el cartón limpio y seco. Dóblalo para reducir su volumen antes de entregarlo para reciclaje."
+
+        "Papel" ->
+            "Separa el papel limpio y seco. Evita mezclarlo con papel sanitario, grasoso o contaminado."
+
+        "Vidrio" ->
+            "Separa los envases de vidrio y evita romperlos. Deposítalos en un punto de recolección adecuado."
+
+        "Metal" ->
+            "Vacía los envases metálicos y entrégalos limpios y secos para facilitar su aprovechamiento."
+
+        "Basura" ->
+            "Este modelo clasificó el elemento como basura. Verifica si está contaminado o si pertenece a una categoría que no reconoce."
+
+        else ->
+            "No se pudo determinar una recomendación específica para este residuo."
+    }
+
+    val disposalSteps = when (category) {
+        "Plástico" -> listOf(
+            "Vaciar completamente" to "Elimina cualquier resto de líquido.",
+            "Enjuagar" to "Retira restos de bebidas o alimentos.",
+            "Escurrir" to "Deja secar el envase.",
+            "Separar" to "Entrégalo con los materiales aprovechables."
+        )
+
+        "Cartón" -> listOf(
+            "Revisar" to "Comprueba que no esté mojado ni contaminado.",
+            "Limpiar" to "Retira cintas y residuos cuando sea posible.",
+            "Doblar" to "Reduce su volumen.",
+            "Separar" to "Deposítalo con los materiales aprovechables."
+        )
+
+        "Papel" -> listOf(
+            "Revisar" to "Comprueba que esté limpio y seco.",
+            "Separar" to "Retira otros materiales adheridos.",
+            "Organizar" to "Agrupa las hojas o el papel.",
+            "Depositar" to "Entrégalo para su aprovechamiento."
+        )
+
+        "Vidrio" -> listOf(
+            "Vaciar" to "Retira los restos de líquidos.",
+            "Enjuagar" to "Limpia el recipiente si es posible.",
+            "Proteger" to "Evita romperlo o manipular fragmentos.",
+            "Separar" to "Llévalo a un punto de recolección de vidrio."
+        )
+
+        "Metal" -> listOf(
+            "Vaciar" to "Retira restos de bebidas o alimentos.",
+            "Enjuagar" to "Limpia el envase.",
+            "Escurrir" to "Déjalo secar.",
+            "Separar" to "Entrégalo con los materiales aprovechables."
+        )
+
+        else -> listOf(
+            "Revisar" to "Comprueba si el residuo está contaminado.",
+            "Identificar" to "Verifica si pertenece a otra categoría.",
+            "Separar" to "Evita mezclarlo con materiales reciclables.",
+            "Disponer" to "Consulta las indicaciones de recolección local."
+        )
+    }
+
+    val containerName = when (category) {
+        "Plástico", "Cartón", "Papel", "Metal" ->
+            "BLANCO"
+
+        "Vidrio" ->
+            "BLANCO (si es envase aprovechable)"
+
+        else ->
+            "NO APROVECHABLE"
+    }
 
     Column(
         modifier = Modifier
@@ -42,7 +130,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(15.dp))
 
-            // ENCABEZADO
             Text(
                 text = "Resultado del análisis",
                 fontSize = 25.sp,
@@ -53,7 +140,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "La inteligencia artificial ha identificado tu residuo.",
+                text = "La inteligencia artificial ha analizado tu residuo.",
                 fontSize = 14.sp,
                 color = Color.Gray,
                 lineHeight = 21.sp
@@ -78,36 +165,54 @@ fun ResultScreen(
                 ) {
 
                     Text(
-                        text = "IDENTIFICADO CON ÉXITO",
+                        text = if (category == "Sin identificar") {
+                            "RESULTADO NO DISPONIBLE"
+                        } else {
+                            "IDENTIFICADO POR INTELIGENCIA ARTIFICIAL"
+                        },
                         color = ResultGreen,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
 
+                    // IMAGEN
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(130.dp)
+                            .height(180.dp)
                             .background(
                                 ResultBackground,
                                 RoundedCornerShape(16.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "Imagen del residuo",
-                            color = Color.Gray,
-                            fontSize = 14.sp
-                        )
+
+                        if (image != null) {
+
+                            Image(
+                                bitmap = image.asImageBitmap(),
+                                contentDescription = "Fotografía del residuo",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit
+                            )
+
+                        } else {
+
+                            Text(
+                                text = "Imagen no disponible",
+                                color = Color.Gray,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Text(
-                        text = "Botella plástica",
-                        fontSize = 24.sp,
+                        text = category,
+                        fontSize = 27.sp,
                         fontWeight = FontWeight.Bold,
                         color = ResultText
                     )
@@ -115,7 +220,7 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Polímero PET 1 (Tereftalato de polietileno)",
+                        text = "Categoría identificada",
                         fontSize = 13.sp,
                         color = Color.Gray
                     )
@@ -127,14 +232,14 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Text(
-                        text = "95%",
+                        text = "${(confidence * 100).toInt()}%",
                         fontSize = 34.sp,
                         fontWeight = FontWeight.Bold,
                         color = ResultGreen
                     )
 
                     Text(
-                        text = "Confianza del reconocimiento",
+                        text = "Puntuación del modelo",
                         fontSize = 13.sp,
                         color = Color.Gray
                     )
@@ -142,18 +247,31 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Surface(
-                        color = ResultLight,
+                        color = if (isRecyclable) {
+                            ResultLight
+                        } else {
+                            Color(0xFFFFE8E8)
+                        },
                         shape = RoundedCornerShape(12.dp)
                     ) {
+
                         Text(
-                            text = "APROVECHABLE",
+                            text = if (isRecyclable) {
+                                "APROVECHABLE"
+                            } else {
+                                "NO APROVECHABLE / REVISAR"
+                            },
                             modifier = Modifier.padding(
-                                horizontal = 22.dp,
+                                horizontal = 18.dp,
                                 vertical = 10.dp
                             ),
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
-                            color = ResultGreen
+                            color = if (isRecyclable) {
+                                ResultGreen
+                            } else {
+                                Color(0xFFB3261E)
+                            }
                         )
                     }
                 }
@@ -169,6 +287,7 @@ fun ResultScreen(
                     containerColor = ResultLight
                 )
             ) {
+
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
@@ -183,7 +302,7 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Este residuo puede reciclarse si está limpio y completamente seco. Los restos de líquidos o grasas pueden afectar el proceso.",
+                        text = recommendation,
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
                         color = ResultText
@@ -203,29 +322,14 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            DisposalStep(
-                number = "01",
-                title = "Vaciar completamente",
-                description = "Elimina cualquier resto de líquido o bebida."
-            )
+            disposalSteps.forEachIndexed { index, step ->
 
-            DisposalStep(
-                number = "02",
-                title = "Enjuagar",
-                description = "Lava brevemente el interior para retirar los residuos."
-            )
-
-            DisposalStep(
-                number = "03",
-                title = "Escurrir y compactar",
-                description = "Retira el exceso de agua y aplasta la botella para reducir su volumen."
-            )
-
-            DisposalStep(
-                number = "04",
-                title = "Depositar en el contenedor",
-                description = "Llévala al contenedor blanco destinado a materiales aprovechables."
-            )
+                DisposalStep(
+                    number = "0${index + 1}",
+                    title = step.first,
+                    description = step.second
+                )
+            }
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -237,9 +341,11 @@ fun ResultScreen(
                     containerColor = Color.White
                 )
             ) {
+
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
+
                     Text(
                         text = "Contenedor recomendado",
                         fontSize = 15.sp,
@@ -249,14 +355,14 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "BLANCO",
+                        text = containerName,
                         fontSize = 23.sp,
                         fontWeight = FontWeight.Bold,
                         color = ResultGreen
                     )
 
                     Text(
-                        text = "Materiales aprovechables limpios y secos.",
+                        text = "Verifica las condiciones de recolección de tu municipio.",
                         fontSize = 13.sp,
                         color = ResultText
                     )
@@ -265,7 +371,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // PUNTOS
             Text(
                 text = "+15 puntos EcoGuía",
                 fontSize = 20.sp,
@@ -299,6 +404,7 @@ fun ResultScreen(
                 ),
                 shape = RoundedCornerShape(14.dp)
             ) {
+
                 Text(
                     text = "Guardar en mi historial",
                     fontSize = 15.sp,
@@ -315,6 +421,7 @@ fun ResultScreen(
                     .height(48.dp),
                 shape = RoundedCornerShape(14.dp)
             ) {
+
                 Text(
                     text = "Volver a escanear",
                     color = ResultGreen
@@ -342,6 +449,7 @@ private fun DisposalStep(
             color = ResultLight,
             shape = RoundedCornerShape(10.dp)
         ) {
+
             Text(
                 text = number,
                 modifier = Modifier.padding(
@@ -357,6 +465,7 @@ private fun DisposalStep(
         Spacer(modifier = Modifier.width(14.dp))
 
         Column {
+
             Text(
                 text = title,
                 fontSize = 15.sp,
@@ -380,6 +489,9 @@ private fun DisposalStep(
 @Composable
 fun ResultScreenPreview() {
     MaterialTheme {
-        ResultScreen()
+        ResultScreen(
+            category = "Plástico",
+            confidence = 0.6883f
+        )
     }
 }
