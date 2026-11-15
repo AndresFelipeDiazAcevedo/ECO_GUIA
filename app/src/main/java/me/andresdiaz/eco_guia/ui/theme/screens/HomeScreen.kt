@@ -134,7 +134,6 @@ fun HomeScreen(
                             )
                         )
                 ) {
-                    // Decoración geométrica
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -250,7 +249,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(27.dp))
 
-            // ESTADÍSTICAS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -296,7 +294,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(27.dp))
 
-            // CONSEJOS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -341,7 +338,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(17.dp))
 
-            // MENSAJE FINAL
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),

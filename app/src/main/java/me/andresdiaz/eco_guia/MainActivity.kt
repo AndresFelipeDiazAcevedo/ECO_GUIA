@@ -20,12 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -120,7 +118,6 @@ fun AppNavigation() {
             modifier = Modifier.padding(innerPadding)
         ) {
 
-            // INICIO DE SESIÓN
             composable("login") {
                 LoginScreen(
                     onLoginClick = {
@@ -137,7 +134,6 @@ fun AppNavigation() {
                 )
             }
 
-            // REGISTRO
             composable("register") {
                 RegisterScreen(
                     onRegisterClick = {
@@ -154,7 +150,6 @@ fun AppNavigation() {
                 )
             }
 
-            // HOME
             composable("home") {
                 HomeScreen(
                     onIdentifyClick = {
@@ -168,7 +163,6 @@ fun AppNavigation() {
                 )
             }
 
-            // ESCÁNER
             composable("scanner") {
                 ScannerScreen(
                     onResultClick = { bitmap, category, confidence ->
@@ -190,7 +184,6 @@ fun AppNavigation() {
                 )
             }
 
-            // RESULTADO
             composable("result") {
 
                 val savedStateHandle = navController.previousBackStackEntry
@@ -244,7 +237,6 @@ fun AppNavigation() {
                 )
             }
 
-            // GUÍA
             composable("guide") {
                 GuideScreen(
                     onCategoryClick = { category ->
@@ -255,7 +247,6 @@ fun AppNavigation() {
                 )
             }
 
-            // DETALLE DE CATEGORÍA
             composable("detail/{category}") { backStackEntry ->
 
                 val category = Uri.decode(
@@ -271,7 +262,6 @@ fun AppNavigation() {
                 )
             }
 
-            // HISTORIAL
             composable("history") {
                 HistoryScreen(
                     databaseHelper = databaseHelper,
@@ -281,7 +271,6 @@ fun AppNavigation() {
                 )
             }
 
-            // PERFIL
             composable("profile") {
                 ProfileScreen(
                     databaseHelper = databaseHelper,
@@ -339,7 +328,6 @@ fun EcoBottomBar(
                 modifier = Modifier.weight(1f)
             )
 
-            // Botón central de identificación
             Column(
                 modifier = Modifier
                     .weight(1f)

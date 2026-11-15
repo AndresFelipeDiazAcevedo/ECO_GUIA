@@ -37,7 +37,6 @@ fun HistoryScreen(
 
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-    // Cargar únicamente los registros del usuario autenticado
     LaunchedEffect(databaseHelper, userId) {
         records = if (databaseHelper != null && userId != null) {
             databaseHelper.getAllScans(userId)
@@ -46,7 +45,6 @@ fun HistoryScreen(
         }
     }
 
-    // Aplicar filtros
     val filteredRecords = when (selectedFilter) {
 
         "Aprovechables" -> records.filter {
@@ -81,7 +79,6 @@ fun HistoryScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ENCABEZADO
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -113,7 +110,6 @@ fun HistoryScreen(
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            // RESUMEN
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -176,7 +172,6 @@ fun HistoryScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // FILTROS
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -240,7 +235,6 @@ fun HistoryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // REGISTROS DEL USUARIO
             filteredRecords.forEach { record ->
 
                 HistoryRecordCard(record)
@@ -248,7 +242,6 @@ fun HistoryScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // ESTADO VACÍO
             if (filteredRecords.isEmpty()) {
 
                 Text(
@@ -403,7 +396,6 @@ private fun HistoryRecordCard(record: ScanRecord) {
     }
 }
 
-// CLASIFICACIÓN DE LAS 10 CATEGORÍAS
 private fun getCategoryType(material: String): String {
 
     return when (material.trim().lowercase()) {
@@ -422,7 +414,6 @@ private fun getCategoryType(material: String): String {
     }
 }
 
-// CONTENEDOR O LUGAR DE DISPOSICIÓN
 private fun getContainer(material: String): String {
 
     return when (material.trim().lowercase()) {

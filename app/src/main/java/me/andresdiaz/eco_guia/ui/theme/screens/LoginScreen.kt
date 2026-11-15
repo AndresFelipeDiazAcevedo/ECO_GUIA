@@ -62,7 +62,6 @@ fun LoginScreen(
     ) {
         Spacer(modifier = Modifier.height(48.dp))
 
-        // IDENTIDAD DE ECOGUÍA
         Box(
             modifier = Modifier
                 .size(86.dp)
@@ -105,7 +104,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // FORMULARIO
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(23.dp),

@@ -43,7 +43,6 @@ private fun getWasteDetail(category: String): WasteDetail {
 
     return when (category.trim().lowercase()) {
 
-        // CATEGORÍAS GENERALES
 
         "aprovechables" -> WasteDetail(
             title = "Residuos aprovechables",
@@ -121,7 +120,6 @@ private fun getWasteDetail(category: String): WasteDetail {
             )
         )
 
-        // LAS 10 CATEGORÍAS DEL MODELO DE IA
 
         "basura" -> WasteDetail(
             title = "Basura ordinaria",

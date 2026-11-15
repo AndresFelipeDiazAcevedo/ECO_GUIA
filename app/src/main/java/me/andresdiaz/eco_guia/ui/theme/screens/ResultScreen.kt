@@ -239,7 +239,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ENCABEZADO
             Text(
                 text = "Resultado del análisis",
                 style = MaterialTheme.typography.headlineMedium,
@@ -256,7 +255,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(19.dp))
 
-            // RESULTADO PRINCIPAL
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(25.dp),
@@ -302,7 +300,6 @@ fun ResultScreen(
 
                     Spacer(modifier = Modifier.height(15.dp))
 
-                    // IMAGEN
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -352,7 +349,6 @@ fun ResultScreen(
 
                     Spacer(modifier = Modifier.height(17.dp))
 
-                    // CONFIANZA
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -399,7 +395,6 @@ fun ResultScreen(
 
                     Spacer(modifier = Modifier.height(17.dp))
 
-                    // CLASIFICACIÓN
                     Surface(
                         color = statusBackground,
                         shape = RoundedCornerShape(11.dp)
@@ -423,7 +418,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(17.dp))
 
-            // RECOMENDACIÓN
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(21.dp),
@@ -456,7 +450,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(25.dp))
 
-            // INSTRUCCIONES
             Text(
                 text = "¿Qué debes hacer?",
                 style = MaterialTheme.typography.titleLarge,
@@ -484,7 +477,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(7.dp))
 
-            // CONTENEDOR
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(21.dp),
@@ -574,7 +566,6 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // PUNTOS
             if (isIdentified) {
 
                 Surface(
@@ -652,7 +643,6 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // ACCIONES INFERIORES
         Surface(
             color = EcoWhite,
             shadowElevation = 8.dp

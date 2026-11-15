@@ -157,7 +157,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TARJETA DE USUARIO
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -241,7 +240,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // PROGRESO
             ProfileSectionHeading(
                 title = "Tu progreso",
                 subtitle = "Sigue avanzando en tu camino ecológico."
@@ -314,7 +312,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // ESTADÍSTICAS
             ProfileSectionHeading(
                 title = "Mi impacto positivo",
                 subtitle = "El resultado de tus residuos identificados."
@@ -373,7 +370,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // INSIGNIAS
             ProfileSectionHeading(
                 title = "Insignias ambientales",
                 subtitle = "Desbloquea logros con tus acciones."
@@ -464,7 +460,6 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(26.dp))
 
-            // CONFIGURACIÓN
             ProfileSectionHeading(
                 title = "Configuración",
                 subtitle = "Administra tu sesión."

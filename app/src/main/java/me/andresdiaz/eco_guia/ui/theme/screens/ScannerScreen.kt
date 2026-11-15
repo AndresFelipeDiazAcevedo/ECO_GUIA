@@ -8,7 +8,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,7 +51,6 @@ fun ScannerScreen(
         mutableStateOf<String?>(null)
     }
 
-    // CÁMARA
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
@@ -62,7 +60,6 @@ fun ScannerScreen(
         }
     }
 
-    // GALERÍA
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -96,7 +93,6 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // ENCABEZADO
         Text(
             text = "Identificar",
             style = MaterialTheme.typography.headlineMedium,
@@ -113,7 +109,6 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // INDICADOR DE ESTADO
         Surface(
             shape = RoundedCornerShape(50.dp),
             color = EcoGreenLight
@@ -149,7 +144,6 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        // ÁREA DE ESCANEO
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,7 +170,6 @@ fun ScannerScreen(
 
             } else {
 
-                // FONDO DE ESPERA
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -195,14 +188,12 @@ fun ScannerScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
 
-                    // MARCO DE ESCANEO
                     Box(
                         modifier = Modifier
                             .size(width = 205.dp, height = 235.dp),
                         contentAlignment = Alignment.Center
                     ) {
 
-                        // Borde exterior sutil
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -213,7 +204,6 @@ fun ScannerScreen(
                                 )
                         )
 
-                        // Marco interior
                         Box(
                             modifier = Modifier
                                 .size(width = 145.dp, height = 175.dp)
@@ -224,7 +214,6 @@ fun ScannerScreen(
                                 )
                         )
 
-                        // Punto central
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
@@ -253,7 +242,6 @@ fun ScannerScreen(
                 }
             }
 
-            // ETIQUETA INFERIOR
             if (selectedImage != null) {
                 Surface(
                     modifier = Modifier
@@ -314,7 +302,6 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(17.dp))
 
-        // INSTRUCCIÓN
         Text(
             text = if (selectedImage == null) {
                 "Centra el residuo en la imagen y procura tener buena iluminación."
@@ -328,14 +315,12 @@ fun ScannerScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // CONTROLES DE CAPTURA
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // GALERÍA
             OutlinedButton(
                 onClick = {
                     galleryLauncher.launch("image/*")
@@ -367,7 +352,6 @@ fun ScannerScreen(
                 )
             }
 
-            // CÁMARA
             Button(
                 onClick = {
                     cameraLauncher.launch(null)
@@ -397,7 +381,6 @@ fun ScannerScreen(
             }
         }
 
-        // ANALIZAR IMAGEN
         if (selectedImage != null) {
 
             Spacer(modifier = Modifier.height(11.dp))
@@ -466,7 +449,6 @@ fun ScannerScreen(
             }
         }
 
-        // ERRORES
         if (errorMessage != null) {
 
             Spacer(modifier = Modifier.height(10.dp))

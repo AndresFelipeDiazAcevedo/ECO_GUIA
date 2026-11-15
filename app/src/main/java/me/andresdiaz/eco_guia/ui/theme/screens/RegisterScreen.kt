@@ -62,7 +62,6 @@ fun RegisterScreen(
     ) {
         Spacer(modifier = Modifier.height(30.dp))
 
-        // LOGO ECOGUÍA
         Image(
             painter = painterResource(id = R.drawable.ecoguia_logo),
             contentDescription = "Logo de EcoGuía",
@@ -91,7 +90,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // FORMULARIO
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(23.dp),

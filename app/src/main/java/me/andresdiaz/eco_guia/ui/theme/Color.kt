@@ -8,17 +8,14 @@ val EcoGreen = Color(0xFF07583D)
 val EcoGreenDark = Color(0xFF03452F)
 val EcoMint = Color(0xFF62F58C)
 
-// Fondos y superficies
 val EcoBackground = Color(0xFFF7F6FC)
 val EcoLavender = Color(0xFFF0EFFF)
 val EcoWhite = Color(0xFFFFFFFF)
 
-// Textos
 val EcoNavy = Color(0xFF17223D)
 val EcoGray = Color(0xFF777B88)
 val EcoLightGray = Color(0xFFDAD9E8)
 
-// Estados
 val EcoRed = Color(0xFFBA3038)
 val EcoRedLight = Color(0xFFFFE8E8)
 val EcoYellow = Color(0xFFFFD66B)
