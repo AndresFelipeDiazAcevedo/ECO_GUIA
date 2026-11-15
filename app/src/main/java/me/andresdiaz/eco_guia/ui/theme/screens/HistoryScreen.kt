@@ -31,6 +31,7 @@ fun HistoryScreen(
     databaseHelper: ScanDatabaseHelper? = null,
     onBackClick: () -> Unit = {}
 ) {
+
     var selectedFilter by remember { mutableStateOf("Todos") }
     var records by remember { mutableStateOf<List<ScanRecord>>(emptyList()) }
 
@@ -45,13 +46,19 @@ fun HistoryScreen(
         }
     }
 
+    // Aplicar filtros
     val filteredRecords = when (selectedFilter) {
+
         "Aprovechables" -> records.filter {
             getCategoryType(it.material) == "Aprovechable"
         }
 
-        "Peligrosos" -> records.filter {
-            getCategoryType(it.material) == "Peligroso"
+        "No aprovechables" -> records.filter {
+            getCategoryType(it.material) == "No aprovechable"
+        }
+
+        "Especiales" -> records.filter {
+            getCategoryType(it.material) == "Especial"
         }
 
         else -> records
@@ -79,6 +86,7 @@ fun HistoryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 TextButton(onClick = onBackClick) {
                     Text(
                         text = "Volver",
@@ -113,13 +121,16 @@ fun HistoryScreen(
                     containerColor = HistoryGreen
                 )
             ) {
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+
                     Column {
+
                         Text(
                             text = records.size.toString(),
                             fontSize = 28.sp,
@@ -137,6 +148,7 @@ fun HistoryScreen(
                     Column(
                         horizontalAlignment = Alignment.End
                     ) {
+
                         Text(
                             text = totalPoints.toString(),
                             fontSize = 28.sp,
@@ -165,34 +177,64 @@ fun HistoryScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // FILTROS
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf(
-                    "Todos",
-                    "Aprovechables",
-                    "Peligrosos"
-                ).forEach { filter ->
 
-                    FilterChip(
-                        selected = selectedFilter == filter,
-                        onClick = {
-                            selectedFilter = filter
-                        },
-                        label = {
-                            Text(
-                                text = filter,
-                                fontSize = 11.sp
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+
+                    listOf("Todos", "Aprovechables").forEach { filter ->
+
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = {
+                                selectedFilter = filter
+                            },
+                            label = {
+                                Text(
+                                    text = filter,
+                                    fontSize = 11.sp
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = HistoryGreen,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.White,
+                                labelColor = HistoryText
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = HistoryGreen,
-                            selectedLabelColor = Color.White,
-                            containerColor = Color.White,
-                            labelColor = HistoryText
                         )
-                    )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+
+                    listOf("No aprovechables", "Especiales").forEach { filter ->
+
+                        FilterChip(
+                            selected = selectedFilter == filter,
+                            onClick = {
+                                selectedFilter = filter
+                            },
+                            label = {
+                                Text(
+                                    text = filter,
+                                    fontSize = 11.sp
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = HistoryGreen,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.White,
+                                labelColor = HistoryText
+                            )
+                        )
+                    }
                 }
             }
 
@@ -200,12 +242,15 @@ fun HistoryScreen(
 
             // REGISTROS DEL USUARIO
             filteredRecords.forEach { record ->
+
                 HistoryRecordCard(record)
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
+            // ESTADO VACÍO
             if (filteredRecords.isEmpty()) {
+
                 Text(
                     text = if (records.isEmpty()) {
                         "Todavía no tienes residuos registrados. ¡Realiza tu primer escaneo!"
@@ -238,6 +283,18 @@ private fun HistoryRecordCard(record: ScanRecord) {
 
     val container = getContainer(record.material)
 
+    val badgeBackground = when (categoryType) {
+        "Aprovechable" -> Color(0xFFE1F7E9)
+        "Especial" -> Color(0xFFFFF0D9)
+        else -> Color(0xFFFFE8E8)
+    }
+
+    val badgeTextColor = when (categoryType) {
+        "Aprovechable" -> HistoryGreen
+        "Especial" -> Color(0xFF936018)
+        else -> Color(0xFFB3261E)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -245,6 +302,7 @@ private fun HistoryRecordCard(record: ScanRecord) {
             containerColor = Color.White
         )
     ) {
+
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -254,16 +312,12 @@ private fun HistoryRecordCard(record: ScanRecord) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Surface(
-                    color = if (categoryType == "Aprovechable") {
-                        Color(0xFFE1F7E9)
-                    } else if (categoryType == "Peligroso") {
-                        Color(0xFFFFE8E8)
-                    } else {
-                        Color(0xFFFFF1D6)
-                    },
+                    color = badgeBackground,
                     shape = RoundedCornerShape(8.dp)
                 ) {
+
                     Text(
                         text = categoryType.uppercase(),
                         modifier = Modifier.padding(
@@ -272,13 +326,7 @@ private fun HistoryRecordCard(record: ScanRecord) {
                         ),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (categoryType == "Aprovechable") {
-                            HistoryGreen
-                        } else if (categoryType == "Peligroso") {
-                            Color(0xFFB33B3B)
-                        } else {
-                            Color(0xFF8A6410)
-                        }
+                        color = badgeTextColor
                     )
                 }
 
@@ -316,6 +364,7 @@ private fun HistoryRecordCard(record: ScanRecord) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Text(
                     text = "Confianza de la IA",
                     fontSize = 11.sp,
@@ -323,7 +372,7 @@ private fun HistoryRecordCard(record: ScanRecord) {
                 )
 
                 Text(
-                    text = "${(record.confidence * 100).toInt()}%",
+                    text = "${(record.confidence * 100).toInt().coerceIn(0, 100)}%",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = HistoryGreen
@@ -336,6 +385,7 @@ private fun HistoryRecordCard(record: ScanRecord) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+
                 Text(
                     text = "Clasificación registrada",
                     fontSize = 11.sp,
@@ -353,37 +403,47 @@ private fun HistoryRecordCard(record: ScanRecord) {
     }
 }
 
+// CLASIFICACIÓN DE LAS 10 CATEGORÍAS
 private fun getCategoryType(material: String): String {
-    return when (material) {
-        "Plástico", "Cartón", "Papel", "Vidrio", "Metal" ->
+
+    return when (material.trim().lowercase()) {
+
+        "plástico", "cartón", "papel", "vidrio", "metal" ->
             "Aprovechable"
 
-        "Baterías", "Bombillos", "Cartuchos de tinta", "Medicamentos" ->
-            "Peligroso"
+        "basura" ->
+            "No aprovechable"
 
-        else -> "No aprovechable"
+        "baterías", "bombillos", "cartuchos de tinta", "medicamentos" ->
+            "Especial"
+
+        else ->
+            "No aprovechable"
     }
 }
 
+// CONTENEDOR O LUGAR DE DISPOSICIÓN
 private fun getContainer(material: String): String {
-    return when (material) {
-        "Plástico", "Cartón", "Papel", "Vidrio", "Metal" ->
+
+    return when (material.trim().lowercase()) {
+
+        "plástico", "cartón", "papel", "vidrio", "metal" ->
             "Contenedor blanco"
 
-        "Baterías" ->
+        "basura" ->
+            "Contenedor negro"
+
+        "baterías" ->
             "Punto especial para baterías"
 
-        "Bombillos" ->
+        "bombillos" ->
             "Punto de recolección especializado"
 
-        "Cartuchos de tinta" ->
+        "cartuchos de tinta" ->
             "Punto de recolección especializado"
 
-        "Medicamentos" ->
+        "medicamentos" ->
             "Punto de recolección de medicamentos"
-
-        "Basura" ->
-            "Contenedor negro"
 
         else ->
             "Consultar disposición adecuada"
@@ -393,6 +453,7 @@ private fun getContainer(material: String): String {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HistoryScreenPreview() {
+
     MaterialTheme {
         HistoryScreen()
     }

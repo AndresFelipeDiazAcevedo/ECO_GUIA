@@ -6,24 +6,24 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
-
-private val ResultGreen = Color(0xFF075B3D)
-private val ResultLight = Color(0xFFE1F7E9)
-private val ResultBackground = Color(0xFFF7F6FC)
-private val ResultText = Color(0xFF202438)
+import me.andresdiaz.eco_guia.ui.theme.*
 
 private data class WasteInformation(
     val description: String,
@@ -34,23 +34,22 @@ private data class WasteInformation(
 )
 
 private fun getWasteInformation(category: String): WasteInformation {
+    return when (category.trim().lowercase()) {
 
-    return when (category) {
-
-        "Plástico" -> WasteInformation(
+        "plástico" -> WasteInformation(
             description = "Material plástico identificado por la inteligencia artificial.",
-            recommendation = "Vacía el envase, enjuágalo y déjalo completamente seco. Los plásticos limpios pueden aprovecharse mediante procesos de reciclaje.",
+            recommendation = "Vacía los envases, retira los restos de alimentos y déjalos limpios y secos antes de reciclarlos.",
             container = "BLANCO",
             status = "APROVECHABLE SI ESTÁ LIMPIO Y SECO",
             steps = listOf(
                 "Vaciar" to "Elimina los restos de líquidos o alimentos.",
-                "Enjuagar" to "Limpia el interior del envase.",
-                "Secar" to "Escurre y deja secar completamente.",
+                "Limpiar" to "Enjuaga el envase cuando sea necesario.",
+                "Secar" to "Deja secar completamente.",
                 "Separar" to "Deposítalo en el contenedor blanco."
             )
         )
 
-        "Cartón" -> WasteInformation(
+        "cartón" -> WasteInformation(
             description = "Material de cartón identificado por la inteligencia artificial.",
             recommendation = "El cartón debe estar limpio y seco. Si tiene grasa, humedad o restos de comida, no debe mezclarse con los materiales aprovechables.",
             container = "BLANCO",
@@ -63,7 +62,7 @@ private fun getWasteInformation(category: String): WasteInformation {
             )
         )
 
-        "Papel" -> WasteInformation(
+        "papel" -> WasteInformation(
             description = "Material de papel identificado por la inteligencia artificial.",
             recommendation = "El papel limpio y seco puede recuperarse. No incluyas servilletas usadas, papel higiénico ni papel contaminado con alimentos.",
             container = "BLANCO",
@@ -76,7 +75,7 @@ private fun getWasteInformation(category: String): WasteInformation {
             )
         )
 
-        "Vidrio" -> WasteInformation(
+        "vidrio" -> WasteInformation(
             description = "Material de vidrio identificado por la inteligencia artificial.",
             recommendation = "Los frascos y botellas de vidrio pueden aprovecharse. Evita romperlos y separa tapas y otros materiales cuando corresponda.",
             container = "BLANCO (ENVASES APROVECHABLES)",
@@ -89,7 +88,7 @@ private fun getWasteInformation(category: String): WasteInformation {
             )
         )
 
-        "Metal" -> WasteInformation(
+        "metal" -> WasteInformation(
             description = "Material metálico identificado por la inteligencia artificial.",
             recommendation = "Las latas y envases metálicos limpios pueden recuperarse. Vacíalos y elimina los restos de alimentos antes de separarlos.",
             container = "BLANCO",
@@ -102,16 +101,68 @@ private fun getWasteInformation(category: String): WasteInformation {
             )
         )
 
-        "Basura" -> WasteInformation(
+        "basura" -> WasteInformation(
             description = "El modelo clasificó el elemento dentro de la categoría de basura.",
-            recommendation = "Este resultado corresponde a la categoría general de basura del modelo. Comprueba si el residuo está contaminado o si requiere una recolección especial.",
-            container = "NEGRO (NO APROVECHABLES)",
+            recommendation = "Esta categoría representa residuos ordinarios no aprovechables. Comprueba que el elemento no corresponda a un residuo reciclable o peligroso.",
+            container = "NEGRO",
             status = "NO APROVECHABLE",
             steps = listOf(
                 "Revisar" to "Comprueba si el residuo está contaminado.",
-                "Identificar" to "Verifica que no sea un residuo aprovechable.",
+                "Identificar" to "Verifica que no sea un material aprovechable.",
                 "Separar" to "Evita mezclarlo con materiales reciclables.",
-                "Depositar" to "Si es un residuo ordinario no aprovechable, utiliza el contenedor negro."
+                "Depositar" to "Utiliza el contenedor negro si es un residuo ordinario no aprovechable."
+            )
+        )
+
+        "baterías" -> WasteInformation(
+            description = "El modelo identificó una pila o batería usada.",
+            recommendation = "Las baterías pueden contener sustancias peligrosas. Nunca las deposites en los contenedores convencionales.",
+            container = "PUNTO ESPECIAL DE RECOLECCIÓN",
+            status = "RESIDUO ESPECIAL",
+            steps = listOf(
+                "Conservar" to "No abras, aplastes ni perfores la batería.",
+                "Proteger" to "Evita el contacto entre terminales expuestos.",
+                "Almacenar" to "Guárdala en un lugar seco y seguro.",
+                "Entregar" to "Llévala a un punto autorizado de recolección."
+            )
+        )
+
+        "bombillos" -> WasteInformation(
+            description = "El modelo identificó un bombillo o elemento de iluminación.",
+            recommendation = "Algunos bombillos, especialmente los fluorescentes, pueden contener mercurio. Evita romperlos y manipúlalos con cuidado.",
+            container = "PUNTO ESPECIAL DE RECOLECCIÓN",
+            status = "RESIDUO ESPECIAL",
+            steps = listOf(
+                "Conservar" to "Evita golpes y roturas.",
+                "Proteger" to "Utiliza su empaque original o una caja.",
+                "Separar" to "No los mezcles con envases de vidrio.",
+                "Entregar" to "Busca un programa autorizado de recolección de luminarias."
+            )
+        )
+
+        "cartuchos de tinta" -> WasteInformation(
+            description = "El modelo identificó un cartucho de tinta o tóner de impresora.",
+            recommendation = "Estos elementos contienen tinta, plástico y componentes que requieren una disposición diferenciada. Evita abrirlos o perforarlos.",
+            container = "PUNTO ESPECIAL DE RECOLECCIÓN",
+            status = "RESIDUO ESPECIAL",
+            steps = listOf(
+                "No abrir" to "Evita desarmar o perforar el cartucho.",
+                "Proteger" to "Guárdalo en su empaque para evitar derrames.",
+                "Separar" to "No lo mezcles con residuos ordinarios.",
+                "Entregar" to "Consulta los programas de devolución del fabricante."
+            )
+        )
+
+        "medicamentos" -> WasteInformation(
+            description = "El modelo identificó medicamentos que pueden requerir una disposición especial.",
+            recommendation = "Los medicamentos vencidos o que ya no necesitas no deben arrojarse al sanitario ni mezclarse con la basura común.",
+            container = "PUNTO AUTORIZADO DE RECOLECCIÓN",
+            status = "RESIDUO ESPECIAL",
+            steps = listOf(
+                "Identificar" to "Verifica que sean medicamentos vencidos o que ya no necesitas.",
+                "Conservar" to "Mantén el empaque original cuando sea posible.",
+                "Separar" to "No los mezcles con otros residuos.",
+                "Entregar" to "Llévalos a un punto autorizado de recolección."
             )
         )
 
@@ -124,7 +175,7 @@ private fun getWasteInformation(category: String): WasteInformation {
                 "Revisar" to "Comprueba que el residuo se vea claramente.",
                 "Iluminar" to "Busca un lugar con buena iluminación.",
                 "Reintentar" to "Toma otra fotografía.",
-                "Consultar" to "Utiliza la guía de residuos para identificarlo manualmente."
+                "Consultar" to "Utiliza la guía para identificarlo manualmente."
             )
         )
     }
@@ -136,224 +187,291 @@ fun ResultScreen(
     category: String = "Sin identificar",
     confidence: Float = 0f,
     onSaveClick: () -> Unit = {},
-    onRescanClick: () -> Unit = {}
+    onRescanClick: () -> Unit = {},
+    onGuideClick: (String) -> Unit = {}
 ) {
 
     val information = getWasteInformation(category)
+    val normalizedCategory = category.trim().lowercase()
 
-    val isIdentified = category != "Sin identificar"
+    val isIdentified = normalizedCategory != "sin identificar" &&
+            normalizedCategory != ""
+
+    val isSpecial = normalizedCategory in listOf(
+        "baterías",
+        "bombillos",
+        "cartuchos de tinta",
+        "medicamentos"
+    )
+
+    val isTrash = normalizedCategory == "basura"
 
     val percentage = (confidence * 100)
         .toInt()
         .coerceIn(0, 100)
 
+    val statusColor = when {
+        isSpecial -> Color(0xFF9A671C)
+        isTrash -> Color(0xFFB3261E)
+        isIdentified -> EcoGreen
+        else -> EcoGray
+    }
+
+    val statusBackground = when {
+        isSpecial -> Color(0xFFFFF1D8)
+        isTrash -> Color(0xFFFFE9E9)
+        isIdentified -> EcoGreenLight
+        else -> EcoLavender
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ResultBackground)
+            .background(EcoBackground)
     ) {
 
         Column(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp)
+                .padding(horizontal = 20.dp)
         ) {
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            Text(
-                text = "Resultado del análisis",
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold,
-                color = ResultText
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "La inteligencia artificial ha analizado tu residuo.",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                lineHeight = 21.sp
-            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // RESULTADO PRINCIPAL
+            // ENCABEZADO
+            Text(
+                text = "Resultado del análisis",
+                style = MaterialTheme.typography.headlineMedium,
+                color = EcoNavy
+            )
 
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Text(
+                text = "Conoce cómo debes disponer este residuo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = EcoGray
+            )
+
+            Spacer(modifier = Modifier.height(19.dp))
+
+            // RESULTADO PRINCIPAL
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedCornerShape(25.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                )
+                    containerColor = EcoWhite
+                ),
+                elevation = CardDefaults.cardElevation(2.dp)
             ) {
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(17.dp)
                 ) {
 
-                    Text(
-                        text = if (isIdentified) {
-                            "IDENTIFICADO POR INTELIGENCIA ARTIFICIAL"
-                        } else {
-                            "RESULTADO NO DISPONIBLE"
-                        },
-                        color = ResultGreen,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(
+                                    if (isIdentified) EcoGreen else EcoGray,
+                                    CircleShape
+                                )
+                        )
 
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = if (isIdentified) {
+                                "IDENTIFICACIÓN COMPLETADA"
+                            } else {
+                                "IDENTIFICACIÓN PENDIENTE"
+                            },
+                            color = EcoGreen,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.6.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    // IMAGEN
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
-                            .background(
-                                ResultBackground,
-                                RoundedCornerShape(16.dp)
-                            ),
+                            .height(210.dp)
+                            .clip(RoundedCornerShape(17.dp))
+                            .background(EcoBackground),
                         contentAlignment = Alignment.Center
                     ) {
 
                         if (image != null) {
-
                             Image(
                                 bitmap = image.asImageBitmap(),
                                 contentDescription = "Fotografía del residuo",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Fit
                             )
-
                         } else {
-
                             Text(
                                 text = "Imagen no disponible",
-                                color = Color.Gray,
-                                fontSize = 14.sp
+                                color = EcoGray,
+                                fontSize = 13.sp
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(17.dp))
 
                     Text(
                         text = category,
                         fontSize = 27.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ResultText
+                        color = EcoNavy
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(5.dp))
 
                     Text(
                         text = information.description,
                         fontSize = 13.sp,
-                        color = Color.Gray,
-                        lineHeight = 19.sp
+                        lineHeight = 19.sp,
+                        color = EcoGray
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(19.dp))
 
-                    HorizontalDivider(color = ResultBackground)
+                    HorizontalDivider(color = EcoLightGray)
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(17.dp))
 
-                    Text(
-                        text = "$percentage%",
-                        fontSize = 34.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ResultGreen
-                    )
-
-                    Text(
-                        text = "Puntuación del modelo",
-                        fontSize = 13.sp,
-                        color = Color.Gray
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Surface(
-                        color = if (category == "Basura") {
-                            Color(0xFFFFE8E8)
-                        } else if (isIdentified) {
-                            ResultLight
-                        } else {
-                            Color(0xFFFFF1D6)
-                        },
-                        shape = RoundedCornerShape(12.dp)
+                    // CONFIANZA
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
                     ) {
+                        Column {
+                            Text(
+                                text = "Confianza de la IA",
+                                fontSize = 13.sp,
+                                color = EcoGray,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = "$percentage%",
+                                fontSize = 32.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EcoGreen
+                            )
+                        }
 
                         Text(
-                            text = information.status,
-                            modifier = Modifier.padding(
-                                horizontal = 14.dp,
-                                vertical = 10.dp
-                            ),
-                            fontSize = 11.sp,
+                            text = "PREDICCIÓN",
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (category == "Basura") {
-                                Color(0xFFB3261E)
-                            } else {
-                                ResultGreen
-                            }
+                            letterSpacing = 0.7.sp,
+                            color = EcoGray
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    LinearProgressIndicator(
+                        progress = { percentage / 100f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(CircleShape),
+                        color = EcoGreen,
+                        trackColor = EcoGreenLight
+                    )
+
+                    Spacer(modifier = Modifier.height(17.dp))
+
+                    // CLASIFICACIÓN
+                    Surface(
+                        color = statusBackground,
+                        shape = RoundedCornerShape(11.dp)
+                    ) {
+                        Text(
+                            text = information.status,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = 12.dp,
+                                    vertical = 11.dp
+                                ),
+                            color = statusColor,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(17.dp))
 
             // RECOMENDACIÓN
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(21.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = ResultLight
+                    containerColor = EcoGreen
                 )
             ) {
-
                 Column(
-                    modifier = Modifier.padding(18.dp)
+                    modifier = Modifier.padding(19.dp)
                 ) {
 
                     Text(
-                        text = "Recomendación ambiental",
-                        fontSize = 17.sp,
+                        text = "RECOMENDACIÓN AMBIENTAL",
+                        color = EcoMint,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ResultGreen
+                        letterSpacing = 0.7.sp
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
                         text = information.recommendation,
-                        fontSize = 13.sp,
-                        lineHeight = 20.sp,
-                        color = ResultText
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(25.dp))
 
             // INSTRUCCIONES
-
             Text(
-                text = "Instrucciones de disposición",
-                fontSize = 19.sp,
-                fontWeight = FontWeight.Bold,
-                color = ResultText
+                text = "¿Qué debes hacer?",
+                style = MaterialTheme.typography.titleLarge,
+                color = EcoNavy
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Text(
+                text = "Sigue estos pasos para disponerlo correctamente.",
+                fontSize = 12.sp,
+                color = EcoGray
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
 
             information.steps.forEachIndexed { index, step ->
 
@@ -364,16 +482,16 @@ fun ResultScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(7.dp))
 
             // CONTENEDOR
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(21.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                )
+                    containerColor = EcoWhite
+                ),
+                elevation = CardDefaults.cardElevation(2.dp)
             ) {
 
                 Column(
@@ -381,90 +499,212 @@ fun ResultScreen(
                 ) {
 
                     Text(
-                        text = "Contenedor recomendado",
-                        fontSize = 15.sp,
-                        color = Color.Gray
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = information.container,
-                        fontSize = 21.sp,
+                        text = if (isSpecial) {
+                            "DISPOSICIÓN ESPECIAL"
+                        } else {
+                            "CONTENEDOR RECOMENDADO"
+                        },
+                        color = EcoGray,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ResultGreen
+                        letterSpacing = 0.6.sp
                     )
 
+                    Spacer(modifier = Modifier.height(13.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        val binColor = when {
+                            isSpecial -> Color(0xFFD69A38)
+                            isTrash -> Color(0xFF252525)
+                            isIdentified -> Color(0xFFF0F0F0)
+                            else -> EcoLavender
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(binColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = when {
+                                    isSpecial -> "E"
+                                    isTrash -> "N"
+                                    isIdentified -> "B"
+                                    else -> "?"
+                                },
+                                color = when {
+                                    isSpecial -> Color.White
+                                    isTrash -> Color.White
+                                    isIdentified -> EcoGreen
+                                    else -> EcoGray
+                                },
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(13.dp))
+
+                        Column {
+                            Text(
+                                text = information.container,
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = EcoNavy
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = "Verifica las condiciones de recolección de tu municipio.",
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp,
+                                color = EcoGray
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // PUNTOS
+            if (isIdentified) {
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(17.dp),
+                    color = EcoLavender
+                ) {
+                    Row(
+                        modifier = Modifier.padding(15.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "+15 PUNTOS ECOGUÍA",
+                                color = EcoGreen,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            Text(
+                                text = "Registra esta clasificación para acumular puntos.",
+                                color = EcoGray,
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp
+                            )
+                        }
+
+                        Text(
+                            text = "+15",
+                            color = EcoGreen,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(13.dp))
+
+                OutlinedButton(
+                    onClick = {
+                        onGuideClick(category)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(51.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        EcoGreen.copy(alpha = 0.45f)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = EcoGreen
+                    )
+                ) {
                     Text(
-                        text = "Verifica las condiciones de recolección de tu municipio.",
-                        fontSize = 13.sp,
-                        color = ResultText
+                        text = "Consultar guía de este residuo",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "→",
+                        fontSize = 17.sp
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            if (isIdentified) {
-
-                Text(
-                    text = "+15 puntos EcoGuía",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ResultGreen
-                )
-
-                Text(
-                    text = "Puedes acumular puntos registrando esta clasificación.",
-                    fontSize = 13.sp,
-                    color = Color.Gray
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
         }
 
-        // BOTONES INFERIORES
-
-        Column(
-            modifier = Modifier
-                .background(Color.White)
-                .padding(16.dp)
+        // ACCIONES INFERIORES
+        Surface(
+            color = EcoWhite,
+            shadowElevation = 8.dp
         ) {
-
-            Button(
-                onClick = onSaveClick,
-                enabled = isIdentified,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(53.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ResultGreen
-                ),
-                shape = RoundedCornerShape(14.dp)
+                    .navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 13.dp)
             ) {
 
-                Text(
-                    text = "Guardar en mi historial",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                Button(
+                    onClick = onSaveClick,
+                    enabled = isIdentified,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(53.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EcoGreen,
+                        disabledContainerColor = EcoLightGray
+                    )
+                ) {
+                    Text(
+                        text = "Guardar en mi historial",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(9.dp))
 
-            OutlinedButton(
-                onClick = onRescanClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-
-                Text(
-                    text = "Volver a escanear",
-                    color = ResultGreen
-                )
+                OutlinedButton(
+                    onClick = onRescanClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(15.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        EcoGreen.copy(alpha = 0.35f)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = EcoGreen
+                    )
+                ) {
+                    Text(
+                        text = "Volver a identificar",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
@@ -480,45 +720,47 @@ private fun DisposalStep(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp),
+            .padding(bottom = 17.dp),
         verticalAlignment = Alignment.Top
     ) {
 
-        Surface(
-            color = ResultLight,
-            shape = RoundedCornerShape(10.dp)
+        Box(
+            modifier = Modifier
+                .size(39.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(EcoGreenLight),
+            contentAlignment = Alignment.Center
         ) {
-
             Text(
                 text = number,
-                modifier = Modifier.padding(
-                    horizontal = 12.dp,
-                    vertical = 10.dp
-                ),
-                color = ResultGreen,
+                color = EcoGreen,
                 fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
+                fontSize = 12.sp
             )
         }
 
-        Spacer(modifier = Modifier.width(14.dp))
+        Spacer(modifier = Modifier.width(13.dp))
 
-        Column {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 2.dp)
+        ) {
 
             Text(
                 text = title,
-                fontSize = 15.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = ResultText
+                color = EcoNavy
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = description,
-                fontSize = 13.sp,
-                lineHeight = 19.sp,
-                color = Color.Gray
+                fontSize = 12.sp,
+                lineHeight = 18.sp,
+                color = EcoGray
             )
         }
     }
@@ -527,9 +769,7 @@ private fun DisposalStep(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ResultScreenPreview() {
-
-    MaterialTheme {
-
+    ECO_GUIATheme {
         ResultScreen(
             category = "Plástico",
             confidence = 0.6883f

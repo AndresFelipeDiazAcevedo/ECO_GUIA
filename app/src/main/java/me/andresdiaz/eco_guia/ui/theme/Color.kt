@@ -1,11 +1,26 @@
+
 package me.andresdiaz.eco_guia.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Colores principales
+val EcoGreen = Color(0xFF07583D)
+val EcoGreenDark = Color(0xFF03452F)
+val EcoMint = Color(0xFF62F58C)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Fondos y superficies
+val EcoBackground = Color(0xFFF7F6FC)
+val EcoLavender = Color(0xFFF0EFFF)
+val EcoWhite = Color(0xFFFFFFFF)
+
+// Textos
+val EcoNavy = Color(0xFF17223D)
+val EcoGray = Color(0xFF777B88)
+val EcoLightGray = Color(0xFFDAD9E8)
+
+// Estados
+val EcoRed = Color(0xFFBA3038)
+val EcoRedLight = Color(0xFFFFE8E8)
+val EcoYellow = Color(0xFFFFD66B)
+val EcoYellowLight = Color(0xFFFFF5D9)
+val EcoGreenLight = Color(0xFFE3FBEA)

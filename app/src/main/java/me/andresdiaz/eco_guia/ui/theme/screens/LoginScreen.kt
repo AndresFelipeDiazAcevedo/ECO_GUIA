@@ -21,12 +21,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import me.andresdiaz.eco_guia.R
 
-private val DarkGreen = Color(0xFF075B3D)
-private val LightGreen = Color(0xFF62F58C)
-private val BackgroundColor = Color(0xFFF7F6FC)
-private val FieldColor = Color(0xFFE9EAFB)
-private val TextColor = Color(0xFF202438)
+
+private val LoginGreen = Color(0xFF07583D)
+private val LoginMint = Color(0xFF62F58C)
+private val LoginBackground = Color(0xFFF7F6FC)
+private val LoginField = Color(0xFFF0EFFF)
+private val LoginText = Color(0xFF17223D)
+private val LoginGray = Color(0xFF777B88)
+private val LoginBorder = Color(0xFFE8E7EF)
+private val LoginRed = Color(0xFFB3261E)
 
 @Composable
 fun LoginScreen(
@@ -34,10 +42,8 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}
 ) {
-
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf("") }
@@ -49,71 +55,101 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundColor)
+            .background(LoginBackground)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 28.dp),
+            .padding(horizontal = 25.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(48.dp))
 
-        Spacer(modifier = Modifier.height(65.dp))
-
+        // IDENTIDAD DE ECOGUÍA
         Box(
             modifier = Modifier
-                .size(100.dp)
-                .border(4.dp, Color(0xFFCFF8DD), CircleShape)
-                .background(Color.White, CircleShape),
+                .size(86.dp)
+                .background(Color.White, CircleShape)
+                .border(
+                    width = 3.dp,
+                    color = LoginMint.copy(alpha = 0.55f),
+                    shape = CircleShape
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "E",
-                color = DarkGreen,
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Bold
+            Image(
+                painter = painterResource(id = R.drawable.ecoguia_logo),
+                contentDescription = "Logo de EcoGuía",
+                modifier = Modifier
+                    .size(190.dp),
+                contentScale = ContentScale.Fit
             )
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
         Text(
-            text = "¡Bienvenido de vuelta!",
+            text = "Bienvenido de vuelta",
             fontSize = 27.sp,
             fontWeight = FontWeight.Bold,
-            color = TextColor,
+            color = LoginText,
             textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Ingresa a tu cuenta para continuar\nclasificando y cuidando el planeta.",
-            fontSize = 17.sp,
-            color = Color(0xFF62626B),
-            textAlign = TextAlign.Center,
-            lineHeight = 25.sp
+            text = "Ingresa a tu cuenta y continúa\nhaciendo la diferencia.",
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
+            color = LoginGray,
+            textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(65.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        Surface(
+        // FORMULARIO
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = Color.White,
-            shadowElevation = 2.dp
+            shape = RoundedCornerShape(23.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                LoginBorder
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 1.dp
+            )
         ) {
             Column(
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(21.dp)
             ) {
+                Text(
+                    text = "Iniciar sesión",
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LoginText
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = "Ingresa tus datos para continuar.",
+                    fontSize = 12.sp,
+                    color = LoginGray
+                )
+
+                Spacer(modifier = Modifier.height(23.dp))
 
                 Text(
                     text = "Correo electrónico",
-                    fontSize = 16.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextColor
+                    color = LoginText
                 )
 
-                Spacer(modifier = Modifier.height(7.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(
+                OutlinedTextField(
                     value = email,
                     onValueChange = {
                         email = it
@@ -122,30 +158,35 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
-                        Text("correo@ejemplo.com")
+                        Text(
+                            "correo@ejemplo.com",
+                            fontSize = 13.sp,
+                            color = LoginGray
+                        )
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = FieldColor,
-                        unfocusedContainerColor = FieldColor,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                    shape = RoundedCornerShape(13.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = LoginGreen,
+                        unfocusedBorderColor = LoginBorder,
+                        focusedContainerColor = LoginField,
+                        unfocusedContainerColor = LoginField,
+                        cursorColor = LoginGreen
                     )
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(19.dp))
 
                 Text(
                     text = "Contraseña",
-                    fontSize = 16.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextColor
+                    color = LoginText
                 )
 
-                Spacer(modifier = Modifier.height(7.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                TextField(
+                OutlinedTextField(
                     value = password,
                     onValueChange = {
                         password = it
@@ -154,10 +195,14 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
-                        Text("••••••••")
+                        Text(
+                            "Ingresa tu contraseña",
+                            fontSize = 13.sp,
+                            color = LoginGray
+                        )
                     },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(13.dp),
                     visualTransformation = if (passwordVisible) {
                         VisualTransformation.None
                     } else {
@@ -166,23 +211,26 @@ fun LoginScreen(
                     trailingIcon = {
                         Text(
                             text = if (passwordVisible) "Ocultar" else "Ver",
-                            color = Color(0xFF62626B),
                             modifier = Modifier
                                 .clickable {
                                     passwordVisible = !passwordVisible
                                 }
-                                .padding(horizontal = 8.dp)
+                                .padding(horizontal = 10.dp),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = LoginGreen
                         )
                     },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = FieldColor,
-                        unfocusedContainerColor = FieldColor,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = LoginGreen,
+                        unfocusedBorderColor = LoginBorder,
+                        focusedContainerColor = LoginField,
+                        unfocusedContainerColor = LoginField,
+                        cursorColor = LoginGreen
                     )
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -190,96 +238,79 @@ fun LoginScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = rememberMe,
-                            onCheckedChange = {
-                                rememberMe = it
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = DarkGreen
-                            )
-                        )
-
-                        Text(
-                            text = "Recordarme",
-                            fontSize = 14.sp,
-                            color = Color(0xFF62626B)
-                        )
-                    }
-
                     Text(
                         text = "¿Olvidaste tu contraseña?",
-                        fontSize = 13.sp,
-                        color = DarkGreen,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LoginGreen,
                         modifier = Modifier.clickable {
-
                             errorMessage = ""
                             successMessage = ""
 
                             val cleanEmail = email.trim()
 
-                            if (cleanEmail.isEmpty()) {
-                                errorMessage =
-                                    "Ingresa tu correo para recuperar tu contraseña."
-                            } else if (!android.util.Patterns.EMAIL_ADDRESS
-                                    .matcher(cleanEmail).matches()) {
-                                errorMessage = "Ingresa un correo válido."
-                            } else {
+                            when {
+                                cleanEmail.isEmpty() -> {
+                                    errorMessage =
+                                        "Ingresa tu correo para recuperar tu contraseña."
+                                }
 
-                                isLoading = true
+                                !android.util.Patterns.EMAIL_ADDRESS
+                                    .matcher(cleanEmail).matches() -> {
+                                    errorMessage = "Ingresa un correo válido."
+                                }
 
-                                auth.sendPasswordResetEmail(cleanEmail)
-                                    .addOnCompleteListener { task ->
+                                else -> {
+                                    isLoading = true
 
-                                        isLoading = false
+                                    auth.sendPasswordResetEmail(cleanEmail)
+                                        .addOnCompleteListener { task ->
+                                            isLoading = false
 
-                                        if (task.isSuccessful) {
-                                            successMessage =
-                                                "Te enviamos un enlace para restablecer tu contraseña."
-                                        } else {
-                                            errorMessage =
-                                                "No se pudo enviar el correo. " +
-                                                        (task.exception?.localizedMessage
-                                                            ?: "Inténtalo nuevamente.")
+                                            if (task.isSuccessful) {
+                                                successMessage =
+                                                    "Te enviamos un enlace para restablecer tu contraseña."
+                                            } else {
+                                                errorMessage =
+                                                    "No se pudo enviar el correo. " +
+                                                            (task.exception?.localizedMessage
+                                                                ?: "Inténtalo nuevamente.")
+                                            }
                                         }
-                                    }
 
-                                onForgotPasswordClick()
+                                    onForgotPasswordClick()
+                                }
                             }
                         }
                     )
                 }
 
                 if (errorMessage.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(9.dp))
 
                     Text(
                         text = errorMessage,
-                        color = Color(0xFFB3261E),
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
+                        color = LoginRed,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp
                     )
                 }
 
                 if (successMessage.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(9.dp))
 
                     Text(
                         text = successMessage,
-                        color = DarkGreen,
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
+                        color = LoginGreen,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(17.dp))
 
                 Button(
                     onClick = {
-
                         if (isLoading) return@Button
 
                         errorMessage = ""
@@ -302,20 +333,17 @@ fun LoginScreen(
                             }
 
                             else -> {
-
                                 isLoading = true
 
                                 auth.signInWithEmailAndPassword(
                                     cleanEmail,
                                     password
                                 ).addOnCompleteListener { task ->
-
                                     isLoading = false
 
                                     if (task.isSuccessful) {
                                         onLoginClick()
                                     } else {
-
                                         errorMessage = when (
                                             (task.exception as? com.google.firebase.auth.FirebaseAuthException)
                                                 ?.errorCode
@@ -348,31 +376,31 @@ fun LoginScreen(
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp),
-                    shape = RoundedCornerShape(13.dp),
+                        .height(54.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = DarkGreen
+                        containerColor = LoginGreen,
+                        disabledContainerColor = LoginGreen.copy(alpha = 0.6f)
                     )
                 ) {
-
                     if (isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(22.dp),
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Text(
-                            text = "Iniciar sesión  →",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
+                            text = "Iniciar sesión",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(95.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -380,15 +408,15 @@ fun LoginScreen(
         ) {
             Text(
                 text = "¿No tienes una cuenta? ",
-                fontSize = 16.sp,
-                color = Color(0xFF62626B)
+                fontSize = 13.sp,
+                color = LoginGray
             )
 
             Text(
                 text = "Regístrate",
-                fontSize = 16.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = DarkGreen,
+                color = LoginGreen,
                 modifier = Modifier.clickable {
                     onRegisterClick()
                 }
@@ -398,10 +426,11 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(22.dp))
 
         Text(
-            text = "Términos de servicio    •    Política de privacidad",
-            fontSize = 13.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
+            text = "ECOGUÍA",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            color = LoginGreen
         )
 
         Spacer(modifier = Modifier.height(25.dp))

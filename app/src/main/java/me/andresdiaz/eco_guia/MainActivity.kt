@@ -7,16 +7,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
@@ -35,6 +42,9 @@ import me.andresdiaz.eco_guia.ui.screens.LoginScreen
 import me.andresdiaz.eco_guia.ui.screens.RegisterScreen
 import me.andresdiaz.eco_guia.ui.screens.DetailScreen
 import me.andresdiaz.eco_guia.ui.theme.ECO_GUIATheme
+import me.andresdiaz.eco_guia.ui.theme.EcoGreen
+import me.andresdiaz.eco_guia.ui.theme.EcoGray
+import me.andresdiaz.eco_guia.ui.theme.EcoWhite
 
 class MainActivity : ComponentActivity() {
 
@@ -64,13 +74,8 @@ fun AppNavigation() {
         ScanDatabaseHelper(context.applicationContext)
     }
 
-    // Detectar si existe una sesión activa
     val startDestination = remember {
-        if (auth.currentUser != null) {
-            "home"
-        } else {
-            "login"
-        }
+        if (auth.currentUser != null) "home" else "login"
     }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -85,76 +90,25 @@ fun AppNavigation() {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background,
 
         bottomBar = {
             if (currentDestination?.route in bottomBarRoutes) {
 
-                NavigationBar {
+                EcoBottomBar(
+                    selectedRoute = currentDestination?.route ?: "",
+                    onNavigate = { route ->
 
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == "home"
-                        } == true,
-                        onClick = {
-                            navController.navigate("home") {
-                                launchSingleTop = true
+                        if (route != currentDestination?.route) {
+                            navController.navigate(route) {
                                 popUpTo("home") {
                                     inclusive = false
                                 }
-                            }
-                        },
-                        icon = {},
-                        label = { Text("Inicio") }
-                    )
-
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == "scanner"
-                        } == true,
-                        onClick = {
-                            navController.navigate("scanner") {
                                 launchSingleTop = true
-                                popUpTo("home") {
-                                    inclusive = false
-                                }
                             }
-                        },
-                        icon = {},
-                        label = { Text("Identificar") }
-                    )
-
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == "guide"
-                        } == true,
-                        onClick = {
-                            navController.navigate("guide") {
-                                launchSingleTop = true
-                                popUpTo("home") {
-                                    inclusive = false
-                                }
-                            }
-                        },
-                        icon = {},
-                        label = { Text("Guía") }
-                    )
-
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == "profile"
-                        } == true,
-                        onClick = {
-                            navController.navigate("profile") {
-                                launchSingleTop = true
-                                popUpTo("home") {
-                                    inclusive = false
-                                }
-                            }
-                        },
-                        icon = {},
-                        label = { Text("Perfil") }
-                    )
-                }
+                        }
+                    }
+                )
             }
         }
 
@@ -258,7 +212,6 @@ fun AppNavigation() {
 
                     onSaveClick = {
 
-                        // Obtener UID de la cuenta activa
                         val userId = auth.currentUser?.uid
 
                         if (userId != null) {
@@ -281,6 +234,12 @@ fun AppNavigation() {
                             }
                             launchSingleTop = true
                         }
+                    },
+
+                    onGuideClick = { category ->
+                        navController.navigate(
+                            "detail/${Uri.encode(category)}"
+                        )
                     }
                 )
             }
@@ -328,7 +287,6 @@ fun AppNavigation() {
                     databaseHelper = databaseHelper,
                     onLogoutClick = {
 
-                        // Cerrar sesión real en Firebase
                         auth.signOut()
 
                         navController.navigate("login") {
@@ -341,5 +299,137 @@ fun AppNavigation() {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun EcoBottomBar(
+    selectedRoute: String,
+    onNavigate: (String) -> Unit
+) {
+
+    Surface(
+        color = EcoWhite,
+        shadowElevation = 12.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .height(76.dp)
+                .padding(horizontal = 8.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            EcoBottomItem(
+                symbol = "⌂",
+                label = "Inicio",
+                selected = selectedRoute == "home",
+                onClick = { onNavigate("home") },
+                modifier = Modifier.weight(1f)
+            )
+
+            EcoBottomItem(
+                symbol = "▤",
+                label = "Guía",
+                selected = selectedRoute == "guide",
+                onClick = { onNavigate("guide") },
+                modifier = Modifier.weight(1f)
+            )
+
+            // Botón central de identificación
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clickable {
+                        onNavigate("scanner")
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = EcoGreen,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "◎",
+                        color = EcoWhite,
+                        fontSize = 29.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Text(
+                    text = "Identificar",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (selectedRoute == "scanner") {
+                        EcoGreen
+                    } else {
+                        EcoGray
+                    }
+                )
+            }
+
+            EcoBottomItem(
+                symbol = "●",
+                label = "Perfil",
+                selected = selectedRoute == "profile",
+                onClick = { onNavigate("profile") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun EcoBottomItem(
+    symbol: String,
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+    val itemColor = if (selected) EcoGreen else EcoGray
+
+    Column(
+        modifier = modifier
+            .fillMaxHeight()
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Text(
+            text = symbol,
+            color = itemColor,
+            fontSize = 25.sp,
+            fontWeight = if (selected) {
+                FontWeight.Bold
+            } else {
+                FontWeight.Normal
+            }
+        )
+
+        Text(
+            text = label,
+            color = itemColor,
+            fontSize = 10.sp,
+            fontWeight = if (selected) {
+                FontWeight.Bold
+            } else {
+                FontWeight.Medium
+            }
+        )
     }
 }

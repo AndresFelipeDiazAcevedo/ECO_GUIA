@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -13,26 +12,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import me.andresdiaz.eco_guia.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.foundation.Image
 
-private val RegisterGreen = Color(0xFF075B3D)
+private val RegisterGreen = Color(0xFF07583D)
 private val RegisterBackground = Color(0xFFF7F6FC)
-private val RegisterField = Color(0xFFE9EAFB)
-private val RegisterText = Color(0xFF202438)
+private val RegisterField = Color(0xFFF0EFFF)
+private val RegisterText = Color(0xFF17223D)
+private val RegisterGray = Color(0xFF777B88)
+private val RegisterBorder = Color(0xFFE8E7EF)
+private val RegisterRed = Color(0xFFB3261E)
 
 @Composable
 fun RegisterScreen(
     onRegisterClick: () -> Unit = {},
     onLoginClick: () -> Unit = {}
 ) {
-
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -53,96 +57,119 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(RegisterBackground)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 28.dp),
+            .padding(horizontal = 25.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(30.dp))
 
-        Spacer(modifier = Modifier.height(45.dp))
-
-        Surface(
-            modifier = Modifier.height(90.dp),
-            shape = CircleShape,
-            color = Color.White,
-            shadowElevation = 2.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 30.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "E",
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = RegisterGreen
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        Text(
-            text = "¡Únete a EcoGuía!",
-            fontSize = 27.sp,
-            fontWeight = FontWeight.Bold,
-            color = RegisterText,
-            textAlign = TextAlign.Center
+        // LOGO ECOGUÍA
+        Image(
+            painter = painterResource(id = R.drawable.ecoguia_logo),
+            contentDescription = "Logo de EcoGuía",
+            modifier = Modifier.size(155.dp),
+            contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = "Únete a EcoGuía",
+            fontSize = 27.sp,
+            fontWeight = FontWeight.Bold,
+            color = RegisterText
+        )
+
+        Spacer(modifier = Modifier.height(7.dp))
 
         Text(
             text = "Crea tu cuenta y comienza a cuidar\nel planeta con nosotros.",
-            fontSize = 16.sp,
-            color = Color(0xFF62626B),
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
+            fontSize = 14.sp,
+            lineHeight = 21.sp,
+            color = RegisterGray,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(25.dp))
 
-        Surface(
+        // FORMULARIO
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = Color.White,
-            shadowElevation = 2.dp
+            shape = RoundedCornerShape(23.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                RegisterBorder
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 1.dp
+            )
         ) {
             Column(
-                modifier = Modifier.padding(22.dp)
+                modifier = Modifier.padding(21.dp)
             ) {
+                Text(
+                    text = "Crear una cuenta",
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RegisterText
+                )
+
+                Spacer(modifier = Modifier.height(5.dp))
+
+                Text(
+                    text = "Completa tus datos para comenzar.",
+                    fontSize = 12.sp,
+                    color = RegisterGray
+                )
+
+                Spacer(modifier = Modifier.height(21.dp))
 
                 RegisterField(
                     label = "Nombre completo",
                     value = name,
                     placeholder = "Ingresa tu nombre",
-                    onValueChange = { name = it }
+                    onValueChange = {
+                        name = it
+                        errorMessage = ""
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 RegisterField(
                     label = "Usuario",
                     value = username,
                     placeholder = "Crea un nombre de usuario",
-                    onValueChange = { username = it }
+                    onValueChange = {
+                        username = it
+                        errorMessage = ""
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 RegisterField(
                     label = "Correo electrónico",
                     value = email,
                     placeholder = "correo@ejemplo.com",
-                    onValueChange = { email = it }
+                    onValueChange = {
+                        email = it
+                        errorMessage = ""
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 RegisterField(
                     label = "Contraseña",
                     value = password,
                     placeholder = "Crea una contraseña",
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        errorMessage = ""
+                    },
                     isPassword = true,
                     passwordVisible = passwordVisible,
                     onVisibilityChange = {
@@ -150,13 +177,16 @@ fun RegisterScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 RegisterField(
                     label = "Confirmar contraseña",
                     value = confirmPassword,
                     placeholder = "Repite tu contraseña",
-                    onValueChange = { confirmPassword = it },
+                    onValueChange = {
+                        confirmPassword = it
+                        errorMessage = ""
+                    },
                     isPassword = true,
                     passwordVisible = confirmPasswordVisible,
                     onVisibilityChange = {
@@ -165,21 +195,20 @@ fun RegisterScreen(
                 )
 
                 if (errorMessage.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(15.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
                         text = errorMessage,
-                        color = Color(0xFFB3261E),
-                        fontSize = 13.sp,
-                        lineHeight = 19.sp
+                        color = RegisterRed,
+                        fontSize = 12.sp,
+                        lineHeight = 18.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(25.dp))
+                Spacer(modifier = Modifier.height(22.dp))
 
                 Button(
                     onClick = {
-
                         if (isLoading) return@Button
 
                         errorMessage = ""
@@ -207,7 +236,8 @@ fun RegisterScreen(
                             }
 
                             password.length < 6 -> {
-                                errorMessage = "La contraseña debe tener al menos 6 caracteres."
+                                errorMessage =
+                                    "La contraseña debe tener al menos 6 caracteres."
                             }
 
                             password != confirmPassword -> {
@@ -223,14 +253,13 @@ fun RegisterScreen(
                                 ).addOnCompleteListener { task ->
 
                                     if (task.isSuccessful) {
-
                                         val firebaseUser = auth.currentUser
 
                                         if (firebaseUser == null) {
                                             isLoading = false
-                                            errorMessage = "No se pudo obtener la cuenta creada."
+                                            errorMessage =
+                                                "No se pudo obtener la cuenta creada."
                                         } else {
-
                                             val userData = hashMapOf(
                                                 "uid" to firebaseUser.uid,
                                                 "name" to cleanName,
@@ -245,44 +274,35 @@ fun RegisterScreen(
                                                 .document(firebaseUser.uid)
                                                 .set(userData)
                                                 .addOnSuccessListener {
-
                                                     isLoading = false
                                                     onRegisterClick()
                                                 }
                                                 .addOnFailureListener { exception ->
-
                                                     isLoading = false
-
                                                     errorMessage =
                                                         "La cuenta se creó, pero no se pudo guardar el perfil: " +
                                                                 (exception.localizedMessage
                                                                     ?: "Error de Firestore")
                                                 }
                                         }
-
                                     } else {
-
                                         isLoading = false
 
                                         errorMessage = when (
-                                            task.exception?.message
+                                            task.exception?.javaClass?.simpleName
                                         ) {
-                                            else -> when (
-                                                task.exception?.javaClass?.simpleName
-                                            ) {
-                                                "FirebaseAuthUserCollisionException" ->
-                                                    "Este correo ya tiene una cuenta registrada."
+                                            "FirebaseAuthUserCollisionException" ->
+                                                "Este correo ya tiene una cuenta registrada."
 
-                                                "FirebaseAuthWeakPasswordException" ->
-                                                    "La contraseña es demasiado débil."
+                                            "FirebaseAuthWeakPasswordException" ->
+                                                "La contraseña es demasiado débil."
 
-                                                "FirebaseAuthInvalidCredentialsException" ->
-                                                    "El correo electrónico no es válido."
+                                            "FirebaseAuthInvalidCredentialsException" ->
+                                                "El correo electrónico no es válido."
 
-                                                else ->
-                                                    task.exception?.localizedMessage
-                                                        ?: "No se pudo crear la cuenta."
-                                            }
+                                            else ->
+                                                task.exception?.localizedMessage
+                                                    ?: "No se pudo crear la cuenta."
                                         }
                                     }
                                 }
@@ -292,31 +312,31 @@ fun RegisterScreen(
                     enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(58.dp),
-                    shape = RoundedCornerShape(13.dp),
+                        .height(54.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = RegisterGreen
+                        containerColor = RegisterGreen,
+                        disabledContainerColor = RegisterGreen.copy(alpha = 0.6f)
                     )
                 ) {
-
                     if (isLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(22.dp),
                             color = Color.White,
                             strokeWidth = 2.dp
                         )
                     } else {
                         Text(
                             text = "Crear cuenta",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -324,13 +344,13 @@ fun RegisterScreen(
         ) {
             Text(
                 text = "¿Ya tienes una cuenta? ",
-                fontSize = 15.sp,
-                color = Color(0xFF62626B)
+                fontSize = 13.sp,
+                color = RegisterGray
             )
 
             Text(
                 text = "Inicia sesión",
-                fontSize = 15.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = RegisterGreen,
                 modifier = Modifier.clickable {
@@ -339,13 +359,14 @@ fun RegisterScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
         Text(
-            text = "Términos de servicio    •    Política de privacidad",
-            fontSize = 12.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
+            text = "ECOGUÍA",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 2.sp,
+            color = RegisterGreen
         )
 
         Spacer(modifier = Modifier.height(25.dp))
@@ -363,25 +384,28 @@ private fun RegisterField(
     onVisibilityChange: () -> Unit = {}
 ) {
     Column {
-
         Text(
             text = label,
-            fontSize = 15.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = RegisterText
         )
 
-        Spacer(modifier = Modifier.height(7.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = {
-                Text(placeholder)
+                Text(
+                    text = placeholder,
+                    fontSize = 13.sp,
+                    color = RegisterGray
+                )
             },
             singleLine = true,
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(13.dp),
             visualTransformation = if (isPassword && !passwordVisible) {
                 PasswordVisualTransformation()
             } else {
@@ -391,20 +415,23 @@ private fun RegisterField(
                 if (isPassword) {
                     Text(
                         text = if (passwordVisible) "Ocultar" else "Ver",
-                        color = Color(0xFF62626B),
+                        color = RegisterGreen,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .clickable {
                                 onVisibilityChange()
                             }
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = 10.dp)
                     )
                 }
             },
-            colors = TextFieldDefaults.colors(
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = RegisterGreen,
+                unfocusedBorderColor = RegisterBorder,
                 focusedContainerColor = RegisterField,
                 unfocusedContainerColor = RegisterField,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+                cursorColor = RegisterGreen
             )
         )
     }

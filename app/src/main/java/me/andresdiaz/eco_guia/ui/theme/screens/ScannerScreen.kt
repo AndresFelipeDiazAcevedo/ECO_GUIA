@@ -6,15 +6,18 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -27,10 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.andresdiaz.eco_guia.WasteClassifier
-
-private val ScannerGreen = Color(0xFF075B3D)
-private val ScannerBackground = Color(0xFFF7F6FC)
-private val ScannerText = Color(0xFF202438)
+import me.andresdiaz.eco_guia.ui.theme.*
 
 @Composable
 fun ScannerScreen(
@@ -52,7 +52,7 @@ fun ScannerScreen(
         mutableStateOf<String?>(null)
     }
 
-    // ABRIR CÁMARA
+    // CÁMARA
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
     ) { bitmap ->
@@ -62,7 +62,7 @@ fun ScannerScreen(
         }
     }
 
-    // ABRIR GALERÍA
+    // GALERÍA
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
@@ -90,45 +90,72 @@ fun ScannerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(ScannerBackground)
-            .padding(20.dp)
+            .background(EcoBackground)
+            .padding(horizontal = 20.dp)
     ) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // ENCABEZADO
         Text(
-            text = "Identificar residuo",
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold,
-            color = ScannerText
+            text = "Identificar",
+            style = MaterialTheme.typography.headlineMedium,
+            color = EcoNavy
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(5.dp))
 
         Text(
-            text = "Coloca el residuo frente a la cámara para identificarlo.",
-            fontSize = 14.sp,
-            color = Color.Gray,
-            lineHeight = 21.sp
+            text = "Reconoce tus residuos con inteligencia artificial.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = EcoGray
         )
 
-        Spacer(modifier = Modifier.height(25.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // ÁREA DE IMAGEN
+        // INDICADOR DE ESTADO
+        Surface(
+            shape = RoundedCornerShape(50.dp),
+            color = EcoGreenLight
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = 13.dp,
+                    vertical = 8.dp
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .background(EcoGreen, CircleShape)
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = if (selectedImage == null) {
+                        "LISTO PARA ESCANEAR"
+                    } else {
+                        "IMAGEN SELECCIONADA"
+                    },
+                    color = EcoGreen,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.7.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(15.dp))
+
+        // ÁREA DE ESCANEO
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .background(
-                    Color(0xFFE5E7E9),
-                    RoundedCornerShape(24.dp)
-                )
-                .border(
-                    width = 2.dp,
-                    color = ScannerGreen,
-                    shape = RoundedCornerShape(24.dp)
-                ),
+                .clip(RoundedCornerShape(27.dp))
+                .background(Color(0xFF172B27)),
             contentAlignment = Alignment.Center
         ) {
 
@@ -137,97 +164,243 @@ fun ScannerScreen(
                 Image(
                     bitmap = selectedImage!!.asImageBitmap(),
                     contentDescription = "Imagen del residuo seleccionado",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(5.dp),
-                    contentScale = ContentScale.Fit
+                        .background(Color.Black.copy(alpha = 0.10f))
                 )
 
             } else {
 
+                // FONDO DE ESPERA
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF203A32),
+                                    Color(0xFF101E1A)
+                                )
+                            )
+                        )
+                )
+
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
 
+                    // MARCO DE ESCANEO
+                    Box(
+                        modifier = Modifier
+                            .size(width = 205.dp, height = 235.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        // Borde exterior sutil
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.White.copy(alpha = 0.15f),
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                        )
+
+                        // Marco interior
+                        Box(
+                            modifier = Modifier
+                                .size(width = 145.dp, height = 175.dp)
+                                .border(
+                                    width = 1.5.dp,
+                                    color = EcoMint.copy(alpha = 0.75f),
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                        )
+
+                        // Punto central
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(EcoMint, CircleShape)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     Text(
-                        text = "Vista de cámara",
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = ScannerText
+                        text = "Área de identificación",
+                        color = Color.White,
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(7.dp))
 
                     Text(
-                        text = "La imagen del residuo aparecerá aquí",
-                        fontSize = 13.sp,
-                        color = Color.DarkGray
+                        text = "Selecciona una fotografía\npara comenzar el análisis",
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 12.sp,
+                        lineHeight = 19.sp,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
+                }
+            }
+
+            // ETIQUETA INFERIOR
+            if (selectedImage != null) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(15.dp),
+                    shape = RoundedCornerShape(50.dp),
+                    color = EcoGreen
+                ) {
+                    Text(
+                        text = "Imagen lista para analizar",
+                        modifier = Modifier.padding(
+                            horizontal = 16.dp,
+                            vertical = 9.dp
+                        ),
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            if (isAnalyzing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.65f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            color = EcoMint,
+                            strokeWidth = 3.dp,
+                            modifier = Modifier.size(43.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(15.dp))
+
+                        Text(
+                            text = "Analizando residuo...",
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        Text(
+                            text = "La inteligencia artificial está trabajando",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 11.sp
+                        )
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(17.dp))
 
-        // INDICACIÓN
+        // INSTRUCCIÓN
         Text(
             text = if (selectedImage == null) {
-                "Centra el residuo dentro del área de captura."
+                "Centra el residuo en la imagen y procura tener buena iluminación."
             } else {
-                "Imagen seleccionada correctamente."
+                "Comprueba que el residuo se vea claramente antes de continuar."
             },
-            fontSize = 13.sp,
-            color = Color.Gray
+            color = EcoGray,
+            fontSize = 12.sp,
+            lineHeight = 18.sp
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // BOTÓN DE CÁMARA
-        Button(
-            onClick = {
-                cameraLauncher.launch(null)
-            },
-            enabled = !isAnalyzing,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(55.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = ScannerGreen
-            ),
-            shape = RoundedCornerShape(14.dp)
+        // CONTROLES DE CAPTURA
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Capturar imagen",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            // GALERÍA
+            OutlinedButton(
+                onClick = {
+                    galleryLauncher.launch("image/*")
+                },
+                enabled = !isAnalyzing,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(54.dp),
+                shape = RoundedCornerShape(15.dp),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    EcoGreen.copy(alpha = 0.35f)
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = EcoGreen
+                )
+            ) {
+                Text(
+                    text = "▧",
+                    fontSize = 21.sp
+                )
+
+                Spacer(modifier = Modifier.width(7.dp))
+
+                Text(
+                    text = "Galería",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            // CÁMARA
+            Button(
+                onClick = {
+                    cameraLauncher.launch(null)
+                },
+                enabled = !isAnalyzing,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(54.dp),
+                shape = RoundedCornerShape(15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = EcoGreen,
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "◎",
+                    fontSize = 23.sp
+                )
+
+                Spacer(modifier = Modifier.width(7.dp))
+
+                Text(
+                    text = "Cámara",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // BOTÓN DE GALERÍA
-        OutlinedButton(
-            onClick = {
-                galleryLauncher.launch("image/*")
-            },
-            enabled = !isAnalyzing,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            border = BorderStroke(1.dp, ScannerGreen)
-        ) {
-            Text(
-                text = "Seleccionar desde galería",
-                color = ScannerGreen,
-                fontSize = 15.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // CONTINUAR Y ANALIZAR CON IA
+        // ANALIZAR IMAGEN
         if (selectedImage != null) {
+
+            Spacer(modifier = Modifier.height(11.dp))
 
             Button(
                 onClick = {
@@ -271,63 +444,55 @@ fun ScannerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(55.dp),
+                shape = RoundedCornerShape(15.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF62F58C)
-                ),
-                shape = RoundedCornerShape(14.dp)
+                    containerColor = EcoMint,
+                    contentColor = EcoGreen
+                )
             ) {
-
-                if (isAnalyzing) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(22.dp),
-                        color = ScannerGreen,
-                        strokeWidth = 2.dp
-                    )
-
-                    Spacer(modifier = Modifier.width(10.dp))
-                }
-
                 Text(
-                    text = if (isAnalyzing) {
-                        "Analizando imagen..."
-                    } else {
-                        "Continuar con la identificación"
-                    },
-                    color = ScannerGreen,
+                    text = "Analizar residuo",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "→",
+                    fontSize = 19.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
-
-        } else {
-
-            Text(
-                text = "La identificación será realizada mediante inteligencia artificial.",
-                fontSize = 12.sp,
-                color = Color.Gray,
-                lineHeight = 18.sp
-            )
         }
 
+        // ERRORES
         if (errorMessage != null) {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Text(
-                text = errorMessage ?: "",
-                color = MaterialTheme.colorScheme.error,
-                fontSize = 12.sp
-            )
+            Surface(
+                color = Color(0xFFFFE8E8),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = errorMessage ?: "",
+                    modifier = Modifier.padding(12.dp),
+                    color = EcoRed,
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(15.dp))
     }
 }
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ScannerScreenPreview() {
-    MaterialTheme {
+    ECO_GUIATheme {
         ScannerScreen()
     }
 }
