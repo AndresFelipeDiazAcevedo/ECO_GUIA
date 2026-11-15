@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "392155487166",
+    "project_id": "eco-guia-45ae0",
+    "storage_bucket": "eco-guia-45ae0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:392155487166:android:a594f3e67f223d780e77ef",
+        "android_client_info": {
+          "package_name": "me.andresdiaz.eco_guia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADNkvHW4SNcIpPL4BfkWT0oH-OeeDiMug"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -15,6 +15,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import me.andresdiaz.eco_guia.data.ScanDatabaseHelper
+import me.andresdiaz.eco_guia.data.ScanRecord
 
 private val ProfileGreen = Color(0xFF075B3D)
 private val ProfileLight = Color(0xFFE1F7E9)
@@ -24,10 +28,84 @@ private val ProfileText = Color(0xFF202438)
 
 @Composable
 fun ProfileScreen(
+    databaseHelper: ScanDatabaseHelper? = null,
     onLogoutClick: () -> Unit = {}
-){
-
+) {
     var darkMode by remember { mutableStateOf(false) }
+    var records by remember { mutableStateOf<List<ScanRecord>>(emptyList()) }
+
+    // Datos reales del usuario
+    var fullName by remember { mutableStateOf("Cargando perfil...") }
+    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+
+    val auth = remember { FirebaseAuth.getInstance() }
+    val firestore = remember { FirebaseFirestore.getInstance() }
+
+    val userId = auth.currentUser?.uid
+
+    // Cargar información personal desde Firestore
+    LaunchedEffect(userId) {
+        val currentUser = auth.currentUser
+
+        if (currentUser != null) {
+            email = currentUser.email ?: ""
+
+            firestore.collection("users")
+                .document(currentUser.uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        fullName = document.getString("name")
+                            ?: "Usuario EcoGuía"
+
+                        username = document.getString("username")
+                            ?: ""
+                    } else {
+                        fullName = "Usuario EcoGuía"
+                    }
+                }
+                .addOnFailureListener {
+                    fullName = "Usuario EcoGuía"
+                }
+        } else {
+            fullName = "Usuario"
+            username = ""
+            email = ""
+        }
+    }
+
+    // Cargar escaneos locales del usuario autenticado
+    LaunchedEffect(databaseHelper, userId) {
+        records = if (databaseHelper != null && userId != null) {
+            databaseHelper.getAllScans(userId)
+        } else {
+            emptyList()
+        }
+    }
+
+    val totalScans = records.size
+
+    val recyclable = records.count {
+        getCategoryType(it.material) == "Aprovechable"
+    }
+
+    val dangerous = records.count {
+        getCategoryType(it.material) == "Peligroso"
+    }
+
+    val points = totalScans * 15
+
+    val level = (points / 100) + 1
+    val progress = (points % 100) / 100f
+    val pointsRemaining = 100 - (points % 100)
+
+    val levelName = when {
+        level >= 4 -> "Eco Líder"
+        level == 3 -> "Guardián Verde"
+        level == 2 -> "Separador"
+        else -> "Eco Aprendiz"
+    }
 
     Column(
         modifier = Modifier
@@ -54,7 +132,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // INFORMACIÓN DEL USUARIO
+            // INFORMACIÓN REAL DEL USUARIO
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(22.dp),
@@ -62,7 +140,6 @@ fun ProfileScreen(
                     containerColor = Color.White
                 )
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -79,7 +156,8 @@ fun ProfileScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "A",
+                                text = fullName.firstOrNull()
+                                    ?.uppercase() ?: "U",
                                 fontSize = 35.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = ProfileGreen
@@ -90,7 +168,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "Andrés Díaz",
+                        text = fullName,
                         fontSize = 21.sp,
                         fontWeight = FontWeight.Bold,
                         color = ProfileText
@@ -98,8 +176,18 @@ fun ProfileScreen(
 
                     Spacer(modifier = Modifier.height(5.dp))
 
+                    if (username.isNotBlank()) {
+                        Text(
+                            text = "@$username",
+                            fontSize = 13.sp,
+                            color = Color.Gray
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+
                     Text(
-                        text = "@andresgreen",
+                        text = email,
                         fontSize = 13.sp,
                         color = Color.Gray
                     )
@@ -111,7 +199,7 @@ fun ProfileScreen(
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Text(
-                            text = "Nivel 3: Guardián Verde",
+                            text = "Nivel $level: $levelName",
                             modifier = Modifier.padding(
                                 horizontal = 15.dp,
                                 vertical = 8.dp
@@ -143,7 +231,6 @@ fun ProfileScreen(
                     containerColor = Color.White
                 )
             ) {
-
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
@@ -153,14 +240,14 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "Nivel 3",
+                            text = "Nivel $level",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = ProfileText
                         )
 
                         Text(
-                            text = "84%",
+                            text = "${(progress * 100).toInt()}%",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = ProfileGreen
@@ -170,7 +257,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LinearProgressIndicator(
-                        progress = { 0.84f },
+                        progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(9.dp),
@@ -182,7 +269,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "80 puntos para alcanzar el Nivel 4: Eco Líder.",
+                        text = "$pointsRemaining puntos para alcanzar el siguiente nivel.",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
@@ -206,13 +293,13 @@ fun ProfileScreen(
             ) {
                 ProfileStatCard(
                     modifier = Modifier.weight(1f),
-                    value = "27",
+                    value = totalScans.toString(),
                     description = "Residuos identificados"
                 )
 
                 ProfileStatCard(
                     modifier = Modifier.weight(1f),
-                    value = "19",
+                    value = recyclable.toString(),
                     description = "Reciclables"
                 )
             }
@@ -224,14 +311,14 @@ fun ProfileScreen(
             ) {
                 ProfileStatCard(
                     modifier = Modifier.weight(1f),
-                    value = "420",
+                    value = points.toString(),
                     description = "Puntos acumulados"
                 )
 
                 ProfileStatCard(
                     modifier = Modifier.weight(1f),
-                    value = "14.8 kg",
-                    description = "CO₂ evitado"
+                    value = dangerous.toString(),
+                    description = "Residuos peligrosos"
                 )
             }
 
@@ -254,7 +341,6 @@ fun ProfileScreen(
                     containerColor = Color.White
                 )
             ) {
-
                 Column(
                     modifier = Modifier.padding(18.dp)
                 ) {
@@ -269,7 +355,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "27 de 50 clasificaciones verificadas",
+                        text = "$totalScans de 50 clasificaciones registradas",
                         fontSize = 13.sp,
                         color = Color.Gray
                     )
@@ -277,7 +363,9 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     LinearProgressIndicator(
-                        progress = { 0.54f },
+                        progress = {
+                            (totalScans / 50f).coerceIn(0f, 1f)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp),
@@ -306,7 +394,6 @@ fun ProfileScreen(
                     containerColor = Color.White
                 )
             ) {
-
                 Column(
                     modifier = Modifier.padding(17.dp)
                 ) {
@@ -364,7 +451,18 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
         }
+    }
+}
 
+private fun getCategoryType(material: String): String {
+    return when (material) {
+        "Plástico", "Cartón", "Papel", "Vidrio", "Metal" ->
+            "Aprovechable"
+
+        "Baterías", "Bombillos", "Cartuchos de tinta", "Medicamentos" ->
+            "Peligroso"
+
+        else -> "No aprovechable"
     }
 }
 
@@ -374,7 +472,6 @@ private fun ProfileStatCard(
     value: String,
     description: String
 ) {
-
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(18.dp),
@@ -382,11 +479,9 @@ private fun ProfileStatCard(
             containerColor = Color.White
         )
     ) {
-
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-
             Text(
                 text = value,
                 fontSize = 23.sp,

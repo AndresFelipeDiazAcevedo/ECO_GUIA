@@ -25,6 +25,111 @@ private val ResultLight = Color(0xFFE1F7E9)
 private val ResultBackground = Color(0xFFF7F6FC)
 private val ResultText = Color(0xFF202438)
 
+private data class WasteInformation(
+    val description: String,
+    val recommendation: String,
+    val container: String,
+    val status: String,
+    val steps: List<Pair<String, String>>
+)
+
+private fun getWasteInformation(category: String): WasteInformation {
+
+    return when (category) {
+
+        "Plástico" -> WasteInformation(
+            description = "Material plástico identificado por la inteligencia artificial.",
+            recommendation = "Vacía el envase, enjuágalo y déjalo completamente seco. Los plásticos limpios pueden aprovecharse mediante procesos de reciclaje.",
+            container = "BLANCO",
+            status = "APROVECHABLE SI ESTÁ LIMPIO Y SECO",
+            steps = listOf(
+                "Vaciar" to "Elimina los restos de líquidos o alimentos.",
+                "Enjuagar" to "Limpia el interior del envase.",
+                "Secar" to "Escurre y deja secar completamente.",
+                "Separar" to "Deposítalo en el contenedor blanco."
+            )
+        )
+
+        "Cartón" -> WasteInformation(
+            description = "Material de cartón identificado por la inteligencia artificial.",
+            recommendation = "El cartón debe estar limpio y seco. Si tiene grasa, humedad o restos de comida, no debe mezclarse con los materiales aprovechables.",
+            container = "BLANCO",
+            status = "APROVECHABLE SI ESTÁ LIMPIO Y SECO",
+            steps = listOf(
+                "Revisar" to "Comprueba que no tenga grasa ni humedad.",
+                "Limpiar" to "Retira residuos y elementos adheridos.",
+                "Doblar" to "Pliega el cartón para reducir su volumen.",
+                "Separar" to "Deposítalo en el contenedor blanco."
+            )
+        )
+
+        "Papel" -> WasteInformation(
+            description = "Material de papel identificado por la inteligencia artificial.",
+            recommendation = "El papel limpio y seco puede recuperarse. No incluyas servilletas usadas, papel higiénico ni papel contaminado con alimentos.",
+            container = "BLANCO",
+            status = "APROVECHABLE SI ESTÁ LIMPIO Y SECO",
+            steps = listOf(
+                "Revisar" to "Comprueba que el papel esté limpio y seco.",
+                "Separar" to "Retira materiales que no sean papel.",
+                "Organizar" to "Agrupa las hojas y evita arrugarlas.",
+                "Depositar" to "Entrégalo en el contenedor blanco."
+            )
+        )
+
+        "Vidrio" -> WasteInformation(
+            description = "Material de vidrio identificado por la inteligencia artificial.",
+            recommendation = "Los frascos y botellas de vidrio pueden aprovecharse. Evita romperlos y separa tapas y otros materiales cuando corresponda.",
+            container = "BLANCO (ENVASES APROVECHABLES)",
+            status = "APROVECHABLE SI ES UN ENVASE",
+            steps = listOf(
+                "Vaciar" to "Retira los restos de líquidos.",
+                "Enjuagar" to "Limpia el recipiente si es posible.",
+                "Proteger" to "Evita romperlo y manipular fragmentos.",
+                "Separar" to "Deposita los envases aprovechables en el contenedor blanco."
+            )
+        )
+
+        "Metal" -> WasteInformation(
+            description = "Material metálico identificado por la inteligencia artificial.",
+            recommendation = "Las latas y envases metálicos limpios pueden recuperarse. Vacíalos y elimina los restos de alimentos antes de separarlos.",
+            container = "BLANCO",
+            status = "APROVECHABLE SI ESTÁ LIMPIO Y SECO",
+            steps = listOf(
+                "Vaciar" to "Retira los restos de bebidas o alimentos.",
+                "Enjuagar" to "Limpia el envase cuando sea necesario.",
+                "Secar" to "Escurre el exceso de agua.",
+                "Separar" to "Deposítalo en el contenedor blanco."
+            )
+        )
+
+        "Basura" -> WasteInformation(
+            description = "El modelo clasificó el elemento dentro de la categoría de basura.",
+            recommendation = "Este resultado corresponde a la categoría general de basura del modelo. Comprueba si el residuo está contaminado o si requiere una recolección especial.",
+            container = "NEGRO (NO APROVECHABLES)",
+            status = "NO APROVECHABLE",
+            steps = listOf(
+                "Revisar" to "Comprueba si el residuo está contaminado.",
+                "Identificar" to "Verifica que no sea un residuo aprovechable.",
+                "Separar" to "Evita mezclarlo con materiales reciclables.",
+                "Depositar" to "Si es un residuo ordinario no aprovechable, utiliza el contenedor negro."
+            )
+        )
+
+        else -> WasteInformation(
+            description = "No se pudo identificar una categoría.",
+            recommendation = "Intenta tomar otra fotografía con buena iluminación y mostrando el residuo completo.",
+            container = "NO DETERMINADO",
+            status = "IDENTIFICACIÓN PENDIENTE",
+            steps = listOf(
+                "Revisar" to "Comprueba que el residuo se vea claramente.",
+                "Iluminar" to "Busca un lugar con buena iluminación.",
+                "Reintentar" to "Toma otra fotografía.",
+                "Consultar" to "Utiliza la guía de residuos para identificarlo manualmente."
+            )
+        )
+    }
+}
+
 @Composable
 fun ResultScreen(
     image: Bitmap? = null,
@@ -34,86 +139,13 @@ fun ResultScreen(
     onRescanClick: () -> Unit = {}
 ) {
 
-    val isRecyclable = category != "Basura" &&
-            category != "Sin identificar"
+    val information = getWasteInformation(category)
 
-    val recommendation = when (category) {
-        "Plástico" ->
-            "Separa los envases plásticos, vacíalos y procura entregarlos limpios y secos para facilitar su aprovechamiento."
+    val isIdentified = category != "Sin identificar"
 
-        "Cartón" ->
-            "Mantén el cartón limpio y seco. Dóblalo para reducir su volumen antes de entregarlo para reciclaje."
-
-        "Papel" ->
-            "Separa el papel limpio y seco. Evita mezclarlo con papel sanitario, grasoso o contaminado."
-
-        "Vidrio" ->
-            "Separa los envases de vidrio y evita romperlos. Deposítalos en un punto de recolección adecuado."
-
-        "Metal" ->
-            "Vacía los envases metálicos y entrégalos limpios y secos para facilitar su aprovechamiento."
-
-        "Basura" ->
-            "Este modelo clasificó el elemento como basura. Verifica si está contaminado o si pertenece a una categoría que no reconoce."
-
-        else ->
-            "No se pudo determinar una recomendación específica para este residuo."
-    }
-
-    val disposalSteps = when (category) {
-        "Plástico" -> listOf(
-            "Vaciar completamente" to "Elimina cualquier resto de líquido.",
-            "Enjuagar" to "Retira restos de bebidas o alimentos.",
-            "Escurrir" to "Deja secar el envase.",
-            "Separar" to "Entrégalo con los materiales aprovechables."
-        )
-
-        "Cartón" -> listOf(
-            "Revisar" to "Comprueba que no esté mojado ni contaminado.",
-            "Limpiar" to "Retira cintas y residuos cuando sea posible.",
-            "Doblar" to "Reduce su volumen.",
-            "Separar" to "Deposítalo con los materiales aprovechables."
-        )
-
-        "Papel" -> listOf(
-            "Revisar" to "Comprueba que esté limpio y seco.",
-            "Separar" to "Retira otros materiales adheridos.",
-            "Organizar" to "Agrupa las hojas o el papel.",
-            "Depositar" to "Entrégalo para su aprovechamiento."
-        )
-
-        "Vidrio" -> listOf(
-            "Vaciar" to "Retira los restos de líquidos.",
-            "Enjuagar" to "Limpia el recipiente si es posible.",
-            "Proteger" to "Evita romperlo o manipular fragmentos.",
-            "Separar" to "Llévalo a un punto de recolección de vidrio."
-        )
-
-        "Metal" -> listOf(
-            "Vaciar" to "Retira restos de bebidas o alimentos.",
-            "Enjuagar" to "Limpia el envase.",
-            "Escurrir" to "Déjalo secar.",
-            "Separar" to "Entrégalo con los materiales aprovechables."
-        )
-
-        else -> listOf(
-            "Revisar" to "Comprueba si el residuo está contaminado.",
-            "Identificar" to "Verifica si pertenece a otra categoría.",
-            "Separar" to "Evita mezclarlo con materiales reciclables.",
-            "Disponer" to "Consulta las indicaciones de recolección local."
-        )
-    }
-
-    val containerName = when (category) {
-        "Plástico", "Cartón", "Papel", "Metal" ->
-            "BLANCO"
-
-        "Vidrio" ->
-            "BLANCO (si es envase aprovechable)"
-
-        else ->
-            "NO APROVECHABLE"
-    }
+    val percentage = (confidence * 100)
+        .toInt()
+        .coerceIn(0, 100)
 
     Column(
         modifier = Modifier
@@ -149,6 +181,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // RESULTADO PRINCIPAL
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(22.dp),
@@ -165,10 +198,10 @@ fun ResultScreen(
                 ) {
 
                     Text(
-                        text = if (category == "Sin identificar") {
-                            "RESULTADO NO DISPONIBLE"
-                        } else {
+                        text = if (isIdentified) {
                             "IDENTIFICADO POR INTELIGENCIA ARTIFICIAL"
+                        } else {
+                            "RESULTADO NO DISPONIBLE"
                         },
                         color = ResultGreen,
                         fontSize = 11.sp,
@@ -177,7 +210,6 @@ fun ResultScreen(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    // IMAGEN
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -220,9 +252,10 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Categoría identificada",
+                        text = information.description,
                         fontSize = 13.sp,
-                        color = Color.Gray
+                        color = Color.Gray,
+                        lineHeight = 19.sp
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
@@ -232,7 +265,7 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Text(
-                        text = "${(confidence * 100).toInt()}%",
+                        text = "$percentage%",
                         fontSize = 34.sp,
                         fontWeight = FontWeight.Bold,
                         color = ResultGreen
@@ -247,30 +280,28 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Surface(
-                        color = if (isRecyclable) {
+                        color = if (category == "Basura") {
+                            Color(0xFFFFE8E8)
+                        } else if (isIdentified) {
                             ResultLight
                         } else {
-                            Color(0xFFFFE8E8)
+                            Color(0xFFFFF1D6)
                         },
                         shape = RoundedCornerShape(12.dp)
                     ) {
 
                         Text(
-                            text = if (isRecyclable) {
-                                "APROVECHABLE"
-                            } else {
-                                "NO APROVECHABLE / REVISAR"
-                            },
+                            text = information.status,
                             modifier = Modifier.padding(
-                                horizontal = 18.dp,
+                                horizontal = 14.dp,
                                 vertical = 10.dp
                             ),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (isRecyclable) {
-                                ResultGreen
-                            } else {
+                            color = if (category == "Basura") {
                                 Color(0xFFB3261E)
+                            } else {
+                                ResultGreen
                             }
                         )
                     }
@@ -280,6 +311,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // RECOMENDACIÓN
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
@@ -302,7 +334,7 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = recommendation,
+                        text = information.recommendation,
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
                         color = ResultText
@@ -313,6 +345,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(22.dp))
 
             // INSTRUCCIONES
+
             Text(
                 text = "Instrucciones de disposición",
                 fontSize = 19.sp,
@@ -322,7 +355,7 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            disposalSteps.forEachIndexed { index, step ->
+            information.steps.forEachIndexed { index, step ->
 
                 DisposalStep(
                     number = "0${index + 1}",
@@ -334,6 +367,7 @@ fun ResultScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             // CONTENEDOR
+
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
@@ -355,8 +389,8 @@ fun ResultScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = containerName,
-                        fontSize = 23.sp,
+                        text = information.container,
+                        fontSize = 21.sp,
                         fontWeight = FontWeight.Bold,
                         color = ResultGreen
                     )
@@ -371,23 +405,27 @@ fun ResultScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(
-                text = "+15 puntos EcoGuía",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = ResultGreen
-            )
+            if (isIdentified) {
 
-            Text(
-                text = "Puedes acumular puntos al registrar esta clasificación.",
-                fontSize = 13.sp,
-                color = Color.Gray
-            )
+                Text(
+                    text = "+15 puntos EcoGuía",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ResultGreen
+                )
+
+                Text(
+                    text = "Puedes acumular puntos registrando esta clasificación.",
+                    fontSize = 13.sp,
+                    color = Color.Gray
+                )
+            }
 
             Spacer(modifier = Modifier.height(15.dp))
         }
 
         // BOTONES INFERIORES
+
         Column(
             modifier = Modifier
                 .background(Color.White)
@@ -396,6 +434,7 @@ fun ResultScreen(
 
             Button(
                 onClick = onSaveClick,
+                enabled = isIdentified,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(53.dp),
@@ -488,7 +527,9 @@ private fun DisposalStep(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ResultScreenPreview() {
+
     MaterialTheme {
+
         ResultScreen(
             category = "Plástico",
             confidence = 0.6883f

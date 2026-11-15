@@ -15,74 +15,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.firebase.auth.FirebaseAuth
+import me.andresdiaz.eco_guia.data.ScanDatabaseHelper
+import me.andresdiaz.eco_guia.data.ScanRecord
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val HistoryGreen = Color(0xFF075B3D)
 private val HistoryBackground = Color(0xFFF7F6FC)
 private val HistoryText = Color(0xFF202438)
-private val HistoryLavender = Color(0xFFE9EAFB)
-
-data class HistoryRecord(
-    val name: String,
-    val category: String,
-    val date: String,
-    val container: String,
-    val points: Int
-)
 
 @Composable
-fun HistoryScreen(onBackClick: () -> Unit = {}) {
-
+fun HistoryScreen(
+    databaseHelper: ScanDatabaseHelper? = null,
+    onBackClick: () -> Unit = {}
+) {
     var selectedFilter by remember { mutableStateOf("Todos") }
+    var records by remember { mutableStateOf<List<ScanRecord>>(emptyList()) }
 
-    val records = listOf(
-        HistoryRecord(
-            "Botella plástica (PET)",
-            "Aprovechable",
-            "Hoy, 10:24 AM",
-            "Contenedor blanco",
-            15
-        ),
-        HistoryRecord(
-            "Pila AA alcalina",
-            "Peligroso",
-            "Ayer, 4:15 PM",
-            "Punto especial",
-            30
-        ),
-        HistoryRecord(
-            "Caja de cartón",
-            "Aprovechable",
-            "12 Oct, 3:00 PM",
-            "Contenedor blanco",
-            15
-        ),
-        HistoryRecord(
-            "Envase de vidrio",
-            "Aprovechable",
-            "10 Oct, 1:12 PM",
-            "Contenedor blanco",
-            20
-        ),
-        HistoryRecord(
-            "Medicamento vencido",
-            "Peligroso",
-            "08 Oct, 11:05 AM",
-            "Punto de recolección",
-            25
-        )
-    )
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+    // Cargar únicamente los registros del usuario autenticado
+    LaunchedEffect(databaseHelper, userId) {
+        records = if (databaseHelper != null && userId != null) {
+            databaseHelper.getAllScans(userId)
+        } else {
+            emptyList()
+        }
+    }
 
     val filteredRecords = when (selectedFilter) {
         "Aprovechables" -> records.filter {
-            it.category == "Aprovechable"
+            getCategoryType(it.material) == "Aprovechable"
         }
 
         "Peligrosos" -> records.filter {
-            it.category == "Peligroso"
+            getCategoryType(it.material) == "Peligroso"
         }
 
         else -> records
     }
+
+    val totalPoints = records.size * 15
 
     Column(
         modifier = Modifier
@@ -104,9 +79,7 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TextButton(
-                    onClick = onBackClick
-                ) {
+                TextButton(onClick = onBackClick) {
                     Text(
                         text = "Volver",
                         color = HistoryGreen,
@@ -140,17 +113,15 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
                     containerColor = HistoryGreen
                 )
             ) {
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
                     Column {
                         Text(
-                            text = "27",
+                            text = records.size.toString(),
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -167,7 +138,7 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = "105",
+                            text = totalPoints.toString(),
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -184,7 +155,6 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // TÍTULO DE REGISTROS
             Text(
                 text = "Mis residuos",
                 fontSize = 19.sp,
@@ -199,7 +169,6 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(7.dp)
             ) {
-
                 listOf(
                     "Todos",
                     "Aprovechables",
@@ -222,12 +191,6 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
                             selectedLabelColor = Color.White,
                             containerColor = Color.White,
                             labelColor = HistoryText
-                        ),
-                        border = FilterChipDefaults.filterChipBorder(
-                            enabled = true,
-                            selected = selectedFilter == filter,
-                            borderColor = Color.LightGray,
-                            selectedBorderColor = HistoryGreen
                         )
                     )
                 }
@@ -235,9 +198,8 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // LISTA DE REGISTROS
+            // REGISTROS DEL USUARIO
             filteredRecords.forEach { record ->
-
                 HistoryRecordCard(record)
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -245,7 +207,11 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
 
             if (filteredRecords.isEmpty()) {
                 Text(
-                    text = "No hay registros en esta categoría.",
+                    text = if (records.isEmpty()) {
+                        "Todavía no tienes residuos registrados. ¡Realiza tu primer escaneo!"
+                    } else {
+                        "No hay registros en esta categoría."
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp),
@@ -259,9 +225,18 @@ fun HistoryScreen(onBackClick: () -> Unit = {}) {
 }
 
 @Composable
-private fun HistoryRecordCard(
-    record: HistoryRecord
-) {
+private fun HistoryRecordCard(record: ScanRecord) {
+
+    val categoryType = getCategoryType(record.material)
+
+    val date = remember(record.timestamp) {
+        SimpleDateFormat(
+            "dd MMM yyyy, hh:mm a",
+            Locale.getDefault()
+        ).format(Date(record.timestamp))
+    }
+
+    val container = getContainer(record.material)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -270,42 +245,45 @@ private fun HistoryRecordCard(
             containerColor = Color.White
         )
     ) {
-
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
 
-            // FECHA Y CATEGORÍA
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Surface(
-                    color = if (record.category == "Aprovechable")
+                    color = if (categoryType == "Aprovechable") {
                         Color(0xFFE1F7E9)
-                    else
-                        Color(0xFFFFE8E8),
+                    } else if (categoryType == "Peligroso") {
+                        Color(0xFFFFE8E8)
+                    } else {
+                        Color(0xFFFFF1D6)
+                    },
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = record.category.uppercase(),
+                        text = categoryType.uppercase(),
                         modifier = Modifier.padding(
                             horizontal = 10.dp,
                             vertical = 6.dp
                         ),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (record.category == "Aprovechable")
+                        color = if (categoryType == "Aprovechable") {
                             HistoryGreen
-                        else
+                        } else if (categoryType == "Peligroso") {
                             Color(0xFFB33B3B)
+                        } else {
+                            Color(0xFF8A6410)
+                        }
                     )
                 }
 
                 Text(
-                    text = record.date,
+                    text = date,
                     fontSize = 10.sp,
                     color = Color.Gray
                 )
@@ -313,9 +291,8 @@ private fun HistoryRecordCard(
 
             Spacer(modifier = Modifier.height(13.dp))
 
-            // NOMBRE
             Text(
-                text = record.name,
+                text = record.material,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = HistoryText
@@ -324,7 +301,7 @@ private fun HistoryRecordCard(
             Spacer(modifier = Modifier.height(7.dp))
 
             Text(
-                text = record.container,
+                text = container,
                 fontSize = 13.sp,
                 color = Color.Gray
             )
@@ -335,12 +312,30 @@ private fun HistoryRecordCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // PUNTOS
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Text(
+                    text = "Confianza de la IA",
+                    fontSize = 11.sp,
+                    color = Color.Gray
+                )
 
+                Text(
+                    text = "${(record.confidence * 100).toInt()}%",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = HistoryGreen
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 Text(
                     text = "Clasificación registrada",
                     fontSize = 11.sp,
@@ -348,13 +343,50 @@ private fun HistoryRecordCard(
                 )
 
                 Text(
-                    text = "+${record.points} pts",
+                    text = "+15 pts",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = HistoryGreen
                 )
             }
         }
+    }
+}
+
+private fun getCategoryType(material: String): String {
+    return when (material) {
+        "Plástico", "Cartón", "Papel", "Vidrio", "Metal" ->
+            "Aprovechable"
+
+        "Baterías", "Bombillos", "Cartuchos de tinta", "Medicamentos" ->
+            "Peligroso"
+
+        else -> "No aprovechable"
+    }
+}
+
+private fun getContainer(material: String): String {
+    return when (material) {
+        "Plástico", "Cartón", "Papel", "Vidrio", "Metal" ->
+            "Contenedor blanco"
+
+        "Baterías" ->
+            "Punto especial para baterías"
+
+        "Bombillos" ->
+            "Punto de recolección especializado"
+
+        "Cartuchos de tinta" ->
+            "Punto de recolección especializado"
+
+        "Medicamentos" ->
+            "Punto de recolección de medicamentos"
+
+        "Basura" ->
+            "Contenedor negro"
+
+        else ->
+            "Consultar disposición adecuada"
     }
 }
 

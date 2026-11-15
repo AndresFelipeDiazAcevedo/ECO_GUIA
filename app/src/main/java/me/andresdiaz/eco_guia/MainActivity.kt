@@ -15,12 +15,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import me.andresdiaz.eco_guia.data.ScanDatabaseHelper
 import me.andresdiaz.eco_guia.ui.screens.HomeScreen
 import me.andresdiaz.eco_guia.ui.screens.ScannerScreen
 import me.andresdiaz.eco_guia.ui.screens.ResultScreen
@@ -50,6 +54,24 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
 
     val navController = rememberNavController()
+    val context = LocalContext.current
+
+    val auth = remember {
+        FirebaseAuth.getInstance()
+    }
+
+    val databaseHelper = remember {
+        ScanDatabaseHelper(context.applicationContext)
+    }
+
+    // Detectar si existe una sesión activa
+    val startDestination = remember {
+        if (auth.currentUser != null) {
+            "home"
+        } else {
+            "login"
+        }
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -75,10 +97,10 @@ fun AppNavigation() {
                         } == true,
                         onClick = {
                             navController.navigate("home") {
+                                launchSingleTop = true
                                 popUpTo("home") {
                                     inclusive = false
                                 }
-                                launchSingleTop = true
                             }
                         },
                         icon = {},
@@ -91,10 +113,10 @@ fun AppNavigation() {
                         } == true,
                         onClick = {
                             navController.navigate("scanner") {
+                                launchSingleTop = true
                                 popUpTo("home") {
                                     inclusive = false
                                 }
-                                launchSingleTop = true
                             }
                         },
                         icon = {},
@@ -107,10 +129,10 @@ fun AppNavigation() {
                         } == true,
                         onClick = {
                             navController.navigate("guide") {
+                                launchSingleTop = true
                                 popUpTo("home") {
                                     inclusive = false
                                 }
-                                launchSingleTop = true
                             }
                         },
                         icon = {},
@@ -123,10 +145,10 @@ fun AppNavigation() {
                         } == true,
                         onClick = {
                             navController.navigate("profile") {
+                                launchSingleTop = true
                                 popUpTo("home") {
                                     inclusive = false
                                 }
-                                launchSingleTop = true
                             }
                         },
                         icon = {},
@@ -140,7 +162,7 @@ fun AppNavigation() {
 
         NavHost(
             navController = navController,
-            startDestination = "login",
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
 
@@ -235,7 +257,21 @@ fun AppNavigation() {
                     confidence = confidence,
 
                     onSaveClick = {
-                        navController.navigate("history")
+
+                        // Obtener UID de la cuenta activa
+                        val userId = auth.currentUser?.uid
+
+                        if (userId != null) {
+                            val result = databaseHelper.insertScan(
+                                userId = userId,
+                                material = detectedCategory,
+                                confidence = confidence
+                            )
+
+                            if (result != -1L) {
+                                navController.navigate("history")
+                            }
+                        }
                     },
 
                     onRescanClick = {
@@ -279,6 +315,7 @@ fun AppNavigation() {
             // HISTORIAL
             composable("history") {
                 HistoryScreen(
+                    databaseHelper = databaseHelper,
                     onBackClick = {
                         navController.popBackStack()
                     }
@@ -288,9 +325,14 @@ fun AppNavigation() {
             // PERFIL
             composable("profile") {
                 ProfileScreen(
+                    databaseHelper = databaseHelper,
                     onLogoutClick = {
+
+                        // Cerrar sesión real en Firebase
+                        auth.signOut()
+
                         navController.navigate("login") {
-                            popUpTo("login") {
+                            popUpTo("home") {
                                 inclusive = true
                             }
                             launchSingleTop = true

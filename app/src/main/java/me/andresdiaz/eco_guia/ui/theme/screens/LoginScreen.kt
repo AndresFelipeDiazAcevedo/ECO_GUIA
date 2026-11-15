@@ -1,36 +1,16 @@
+
 package me.andresdiaz.eco_guia.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +20,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
 
 private val DarkGreen = Color(0xFF075B3D)
 private val LightGreen = Color(0xFF62F58C)
@@ -53,10 +34,17 @@ fun LoginScreen(
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}
 ) {
-    var username by remember { mutableStateOf("") }
+
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    var errorMessage by remember { mutableStateOf("") }
+    var successMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = remember { FirebaseAuth.getInstance() }
 
     Column(
         modifier = Modifier
@@ -66,6 +54,7 @@ fun LoginScreen(
             .padding(horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Spacer(modifier = Modifier.height(65.dp))
 
         Box(
@@ -114,8 +103,9 @@ fun LoginScreen(
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
+
                 Text(
-                    text = "Usuario",
+                    text = "Correo electrónico",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextColor
@@ -124,11 +114,15 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(7.dp))
 
                 TextField(
-                    value = username,
-                    onValueChange = { username = it },
+                    value = email,
+                    onValueChange = {
+                        email = it
+                        errorMessage = ""
+                        successMessage = ""
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
-                        Text("nombredeusuario")
+                        Text("correo@ejemplo.com")
                     },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -153,7 +147,11 @@ fun LoginScreen(
 
                 TextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        errorMessage = ""
+                        successMessage = ""
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
                         Text("••••••••")
@@ -169,9 +167,11 @@ fun LoginScreen(
                         Text(
                             text = if (passwordVisible) "Ocultar" else "Ver",
                             color = Color(0xFF62626B),
-                            modifier = Modifier.clickable {
-                                passwordVisible = !passwordVisible
-                            }.padding(horizontal = 8.dp)
+                            modifier = Modifier
+                                .clickable {
+                                    passwordVisible = !passwordVisible
+                                }
+                                .padding(horizontal = 8.dp)
                         )
                     },
                     colors = TextFieldDefaults.colors(
@@ -189,12 +189,15 @@ fun LoginScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = rememberMe,
-                            onCheckedChange = { rememberMe = it },
+                            onCheckedChange = {
+                                rememberMe = it
+                            },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = DarkGreen
                             )
@@ -212,15 +215,137 @@ fun LoginScreen(
                         fontSize = 13.sp,
                         color = DarkGreen,
                         modifier = Modifier.clickable {
-                            onForgotPasswordClick()
+
+                            errorMessage = ""
+                            successMessage = ""
+
+                            val cleanEmail = email.trim()
+
+                            if (cleanEmail.isEmpty()) {
+                                errorMessage =
+                                    "Ingresa tu correo para recuperar tu contraseña."
+                            } else if (!android.util.Patterns.EMAIL_ADDRESS
+                                    .matcher(cleanEmail).matches()) {
+                                errorMessage = "Ingresa un correo válido."
+                            } else {
+
+                                isLoading = true
+
+                                auth.sendPasswordResetEmail(cleanEmail)
+                                    .addOnCompleteListener { task ->
+
+                                        isLoading = false
+
+                                        if (task.isSuccessful) {
+                                            successMessage =
+                                                "Te enviamos un enlace para restablecer tu contraseña."
+                                        } else {
+                                            errorMessage =
+                                                "No se pudo enviar el correo. " +
+                                                        (task.exception?.localizedMessage
+                                                            ?: "Inténtalo nuevamente.")
+                                        }
+                                    }
+
+                                onForgotPasswordClick()
+                            }
                         }
+                    )
+                }
+
+                if (errorMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = errorMessage,
+                        color = Color(0xFFB3261E),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    )
+                }
+
+                if (successMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = successMessage,
+                        color = DarkGreen,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.height(15.dp))
 
                 Button(
-                    onClick = onLoginClick,
+                    onClick = {
+
+                        if (isLoading) return@Button
+
+                        errorMessage = ""
+                        successMessage = ""
+
+                        val cleanEmail = email.trim()
+
+                        when {
+                            cleanEmail.isEmpty() -> {
+                                errorMessage = "Ingresa tu correo electrónico."
+                            }
+
+                            !android.util.Patterns.EMAIL_ADDRESS
+                                .matcher(cleanEmail).matches() -> {
+                                errorMessage = "Ingresa un correo válido."
+                            }
+
+                            password.isEmpty() -> {
+                                errorMessage = "Ingresa tu contraseña."
+                            }
+
+                            else -> {
+
+                                isLoading = true
+
+                                auth.signInWithEmailAndPassword(
+                                    cleanEmail,
+                                    password
+                                ).addOnCompleteListener { task ->
+
+                                    isLoading = false
+
+                                    if (task.isSuccessful) {
+                                        onLoginClick()
+                                    } else {
+
+                                        errorMessage = when (
+                                            (task.exception as? com.google.firebase.auth.FirebaseAuthException)
+                                                ?.errorCode
+                                        ) {
+                                            "ERROR_USER_NOT_FOUND" ->
+                                                "No existe una cuenta con este correo."
+
+                                            "ERROR_WRONG_PASSWORD",
+                                            "ERROR_INVALID_CREDENTIAL" ->
+                                                "El correo o la contraseña son incorrectos."
+
+                                            "ERROR_USER_DISABLED" ->
+                                                "Esta cuenta ha sido deshabilitada."
+
+                                            "ERROR_INVALID_EMAIL" ->
+                                                "El correo electrónico no es válido."
+
+                                            "ERROR_TOO_MANY_REQUESTS" ->
+                                                "Demasiados intentos. Inténtalo más tarde."
+
+                                            else ->
+                                                task.exception?.localizedMessage
+                                                    ?: "No se pudo iniciar sesión."
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(58.dp),
@@ -229,11 +354,20 @@ fun LoginScreen(
                         containerColor = DarkGreen
                     )
                 ) {
-                    Text(
-                        text = "Iniciar sesión  →",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Iniciar sesión  →",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }

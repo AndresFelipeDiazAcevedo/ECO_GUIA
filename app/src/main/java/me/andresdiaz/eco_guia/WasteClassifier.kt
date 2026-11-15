@@ -10,17 +10,21 @@ import com.google.ai.edge.litert.CompiledModel
 class WasteClassifier(context: Context) {
 
     private val labels = listOf(
+        "Basura",
+        "Baterías",
+        "Bombillos",
         "Cartón",
-        "Vidrio",
+        "Cartuchos de tinta",
+        "Medicamentos",
         "Metal",
         "Papel",
         "Plástico",
-        "Basura"
+        "Vidrio"
     )
 
     private val model = CompiledModel.create(
         context.assets,
-        "eco_guia_model.tflite",
+        "ecoguia_modelo_definitivo.tflite",
         CompiledModel.Options(Accelerator.CPU)
     )
 
@@ -31,17 +35,17 @@ class WasteClassifier(context: Context) {
 
         val resizedBitmap = Bitmap.createScaledBitmap(
             bitmap,
-            124,
-            124,
+            160,
+            160,
             true
         )
 
-        val inputData = FloatArray(124 * 124 * 3)
+        val inputData = FloatArray(160 * 160 * 3)
 
         var index = 0
 
-        for (y in 0 until 124) {
-            for (x in 0 until 124) {
+        for (y in 0 until 160) {
+            for (x in 0 until 160) {
 
                 val pixel = resizedBitmap.getPixel(x, y)
 

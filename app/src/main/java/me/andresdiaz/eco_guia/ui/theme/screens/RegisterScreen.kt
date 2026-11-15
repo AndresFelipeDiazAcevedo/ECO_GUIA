@@ -3,30 +3,13 @@ package me.andresdiaz.eco_guia.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +19,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 private val RegisterGreen = Color(0xFF075B3D)
 private val RegisterBackground = Color(0xFFF7F6FC)
@@ -47,6 +32,7 @@ fun RegisterScreen(
     onRegisterClick: () -> Unit = {},
     onLoginClick: () -> Unit = {}
 ) {
+
     var name by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -56,6 +42,12 @@ fun RegisterScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val auth = remember { FirebaseAuth.getInstance() }
+    val firestore = remember { FirebaseFirestore.getInstance() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,6 +56,7 @@ fun RegisterScreen(
             .padding(horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Spacer(modifier = Modifier.height(45.dp))
 
         Surface(
@@ -117,6 +110,7 @@ fun RegisterScreen(
             Column(
                 modifier = Modifier.padding(22.dp)
             ) {
+
                 RegisterField(
                     label = "Nombre completo",
                     value = name,
@@ -170,10 +164,132 @@ fun RegisterScreen(
                     }
                 )
 
+                if (errorMessage.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(15.dp))
+
+                    Text(
+                        text = errorMessage,
+                        color = Color(0xFFB3261E),
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(25.dp))
 
                 Button(
-                    onClick = onRegisterClick,
+                    onClick = {
+
+                        if (isLoading) return@Button
+
+                        errorMessage = ""
+
+                        val cleanName = name.trim()
+                        val cleanUsername = username.trim()
+                        val cleanEmail = email.trim().lowercase()
+
+                        when {
+                            cleanName.isEmpty() ||
+                                    cleanUsername.isEmpty() ||
+                                    cleanEmail.isEmpty() ||
+                                    password.isEmpty() ||
+                                    confirmPassword.isEmpty() -> {
+                                errorMessage = "Completa todos los campos."
+                            }
+
+                            !android.util.Patterns.EMAIL_ADDRESS
+                                .matcher(cleanEmail).matches() -> {
+                                errorMessage = "Ingresa un correo electrónico válido."
+                            }
+
+                            cleanUsername.contains(" ") -> {
+                                errorMessage = "El usuario no debe contener espacios."
+                            }
+
+                            password.length < 6 -> {
+                                errorMessage = "La contraseña debe tener al menos 6 caracteres."
+                            }
+
+                            password != confirmPassword -> {
+                                errorMessage = "Las contraseñas no coinciden."
+                            }
+
+                            else -> {
+                                isLoading = true
+
+                                auth.createUserWithEmailAndPassword(
+                                    cleanEmail,
+                                    password
+                                ).addOnCompleteListener { task ->
+
+                                    if (task.isSuccessful) {
+
+                                        val firebaseUser = auth.currentUser
+
+                                        if (firebaseUser == null) {
+                                            isLoading = false
+                                            errorMessage = "No se pudo obtener la cuenta creada."
+                                        } else {
+
+                                            val userData = hashMapOf(
+                                                "uid" to firebaseUser.uid,
+                                                "name" to cleanName,
+                                                "username" to cleanUsername,
+                                                "email" to cleanEmail,
+                                                "createdAt" to System.currentTimeMillis(),
+                                                "points" to 0,
+                                                "level" to 1
+                                            )
+
+                                            firestore.collection("users")
+                                                .document(firebaseUser.uid)
+                                                .set(userData)
+                                                .addOnSuccessListener {
+
+                                                    isLoading = false
+                                                    onRegisterClick()
+                                                }
+                                                .addOnFailureListener { exception ->
+
+                                                    isLoading = false
+
+                                                    errorMessage =
+                                                        "La cuenta se creó, pero no se pudo guardar el perfil: " +
+                                                                (exception.localizedMessage
+                                                                    ?: "Error de Firestore")
+                                                }
+                                        }
+
+                                    } else {
+
+                                        isLoading = false
+
+                                        errorMessage = when (
+                                            task.exception?.message
+                                        ) {
+                                            else -> when (
+                                                task.exception?.javaClass?.simpleName
+                                            ) {
+                                                "FirebaseAuthUserCollisionException" ->
+                                                    "Este correo ya tiene una cuenta registrada."
+
+                                                "FirebaseAuthWeakPasswordException" ->
+                                                    "La contraseña es demasiado débil."
+
+                                                "FirebaseAuthInvalidCredentialsException" ->
+                                                    "El correo electrónico no es válido."
+
+                                                else ->
+                                                    task.exception?.localizedMessage
+                                                        ?: "No se pudo crear la cuenta."
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enabled = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(58.dp),
@@ -182,11 +298,20 @@ fun RegisterScreen(
                         containerColor = RegisterGreen
                     )
                 ) {
-                    Text(
-                        text = "Crear cuenta",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = "Crear cuenta",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }
@@ -238,6 +363,7 @@ private fun RegisterField(
     onVisibilityChange: () -> Unit = {}
 ) {
     Column {
+
         Text(
             text = label,
             fontSize = 15.sp,
@@ -267,7 +393,9 @@ private fun RegisterField(
                         text = if (passwordVisible) "Ocultar" else "Ver",
                         color = Color(0xFF62626B),
                         modifier = Modifier
-                            .clickable { onVisibilityChange() }
+                            .clickable {
+                                onVisibilityChange()
+                            }
                             .padding(horizontal = 8.dp)
                     )
                 }
